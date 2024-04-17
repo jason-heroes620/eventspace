@@ -128,7 +128,8 @@ class EventPaymentController extends Controller
                     ['status' => $payment_status]
                 );
         $domain = "https://event-payment.heroes.my/paymentSummary/".$OrderNumber."/".$payment_status;        
-        return Redirect::to($domain);
+        // return Redirect::to($domain);
+        return redirect()->away($domain);
     }
 
     private function getPayment($id) {
