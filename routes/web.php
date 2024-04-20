@@ -58,10 +58,10 @@ Route::get('/testHandleMondayMutation/{id}', function(string $order_id) {
                                 ->leftJoin('payment_categories', 'payment_categories.payment_id', '=', 'event_payments.id')
                                 ->leftJoin('categories', 'payment_categories.category_id', '=', 'categories.id')
                                 ->where('event_payments.id', $order_id)
-                                ->get(['categories.category']);
+                                ->get(['categories.id']);
         $categories = [];
         foreach($payment_categories as $cat) {
-            $categories[] = EventCategories::where('event_id', $payment->event_id)->where('category_id', $cat->category)->first(['monday_category_id']);
+            $categories[] = EventCategories::where('event_id', $payment->event_id)->where('category_id', $cat->id)->first(['monday_category_id']);
         }
         
         $event_booths = DB::table("event_payments")
