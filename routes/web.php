@@ -107,13 +107,14 @@ Route::get('/testHandleMondayMutation/{id}', function(string $order_id) {
             ]));
             $responseContent = json_decode($data, true);
 
-            // if(array_key_exists('error_message', $responseContent)) {
-            //     $error = new PaymentEntryError();
+            echo $vals;
+            if(array_key_exists('error_message', $responseContent) || $responseContent == null) {
+                $error = new PaymentEntryError();
 
-            //     $error->payment_id = $order_id;
-            //     $error->error = $responseContent['error_message'];
-            //     $error->save();
-            // }
+                $error->payment_id = $order_id;
+                $error->error = array_key_exists('error_message', $responseContent) ? $responseContent['error_message'] : null;
+                $error->save();
+            }
         } catch(Exception $ex) {
             echo $ex;
         }
