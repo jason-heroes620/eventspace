@@ -82,7 +82,7 @@ Route::get('/testHandleMondayMutation/{id}', function(string $order_id) {
             [
             "status" => ["label" => "Payment Received"],
             "date4" => ['date' => date('Y-m-d', strtotime($payment->created)), 'time' =>date('H:i:s', strtotime($payment->created))],
-            "product_category__1" => ["index" => $categories],
+            "product_category__1" => ["ids" => $categories],
             "text" => $payment->contact_person,
             "phone" => ["phone" => $payment->contact_no, "countryShortName" => "MY"],
             "email" => ["email" => $payment->email, "text" => $payment->email],
