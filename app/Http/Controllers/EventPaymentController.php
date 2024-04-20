@@ -238,24 +238,30 @@ class EventPaymentController extends Controller
         ];
 
         try{
-            $data = @file_get_contents($apiUrl, false, stream_context_create([
-            'http' => [
-            'method' => 'POST',
-            'header' => $headers,
-            'content' => json_encode(['query' => $query, 'variables' => $vals]),
-            ]
-            ]));
-            $responseContent = json_decode($data, true);
+            $guzzleClient = new Client(array('headers'=>array('Content-Type'=>'application/json', 'Authorization'=>$token)));
+            $responseContent = $guzzleClient->post($apiUrl, ['body' =>  json_encode(['query' => $query, 'variables' => $vals])]);
+            // $data = @file_get_contents($apiUrl, false, stream_context_create([
+            // 'http' => [
+            // 'method' => 'POST',
+            // 'header' => $headers,
+            // 'content' => json_encode(['query' => $query, 'variables' => $vals]),
+            // ]
+            // ]));
+            // $responseContent = json_decode($data, true);
 
-            if(array_key_exists('error_message', $responseContent)) {
+            // if(array_key_exists('error_message', $responseContent)) {
+            //     $error = new PaymentEntryError();
+
+            //     $error->payment_id = $order_id;
+            //     $error->error = $responseContent['error_message'];
+            //     $error->save();
+            // }
+        } catch(Exception $ex) {
                 $error = new PaymentEntryError();
 
                 $error->payment_id = $order_id;
-                $error->error = $responseContent['error_message'];
+                $error->error = $ex;
                 $error->save();
-            }
-        } catch(error) {
-           
         }
     }
 }
