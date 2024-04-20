@@ -245,7 +245,7 @@ class EventPaymentController extends Controller
             ]));
             $responseContent = json_decode($data, true);
 
-            if((json_encode($responseContent['error_message'])) != null) {
+            if(array_key_exists('error_message', $responseContent)) {
                 $error = new PaymentEntryError();
 
                 $error->payment_id = $order_id;
