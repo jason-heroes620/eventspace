@@ -10,6 +10,7 @@ use App\Models\PaymentCategories;
 use App\Models\PaymentDetail;
 use App\Models\PaymentHistory;
 use App\Models\Events;
+use App\Models\EventBooth;
 use App\Models\PaymentEntryError;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\PaymentReceived;
@@ -173,7 +174,7 @@ class EventPaymentController extends Controller
         $payment_info = EventPayments::where('id', $order_id)->first();
 
         $event = Events::where('id', $payment_info->event_id)
-                 ->first(['event_name']);
+                 ->first();
 
         Mail::to($payment_info->email)
         ->send(new PaymentReceived($event, $payment_info));
@@ -183,7 +184,7 @@ class EventPaymentController extends Controller
         $payment_info = EventPayments::where('id', $order_id)->first();
 
         $event = Events::where('id', $payment_info->event_id)
-                 ->first(['event_name']);
+                 ->first();
 
         Mail::to('purchases@heroes.my')
         ->send(new PaymentNotification($event, $payment_info));
