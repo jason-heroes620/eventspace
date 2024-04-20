@@ -16,6 +16,7 @@ use App\Models\EventCategories;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\PaymentReceived;
 use App\Mail\PaymentNotification;
+use GuzzleHttp\Client;
 
 class EventPaymentController extends Controller
 {
@@ -177,8 +178,12 @@ class EventPaymentController extends Controller
         $event = Events::where('id', $payment_info->event_id)
                  ->first();
 
-        Mail::to($payment_info->email)
-        ->send(new PaymentReceived($event, $payment_info));
+        try{
+            Mail::to($payment_info->email)
+            ->send(new PaymentReceived($event, $payment_info));
+        } catch(Exception $ex) {
+
+        }
     }
 
     private function handlePaymentNotification($order_id) {
@@ -187,8 +192,12 @@ class EventPaymentController extends Controller
         $event = Events::where('id', $payment_info->event_id)
                  ->first();
 
-        Mail::to('purchases@heroes.my')
-        ->send(new PaymentNotification($event, $payment_info));
+        try{
+            Mail::to('purchases@heroes.my')
+            ->send(new PaymentNotification($event, $payment_info));
+        } catch(Exception $ex) {
+
+        }
     }
 
     private function handleMondayMutation($order_id) {
