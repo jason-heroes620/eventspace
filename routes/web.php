@@ -5,6 +5,7 @@ use App\Mail\PaymentReceived;
 use App\Mail\PaymentNotification;
 
 use App\Models\Events;
+use App\Models\EventCategories;
 use App\Models\EventPayments;
 use App\Models\EventBooth;
 use App\Models\PaymentEntryError;
