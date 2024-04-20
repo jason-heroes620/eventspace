@@ -98,6 +98,8 @@ Route::get('/testHandleMondayMutation/{id}', function(string $order_id) {
         ])
         ];
 
+        // $vals = '["item_name": "Test", "columnVals": {"status":{"label":"Payment Received"},"date4":{"date":"2024-04-20","time":"07:55:54"},"product_category__1":{"ids":[4,5,6]},"text":"Jason Wong","phone":{"phone":"0168992528","countryShortName":"MY"},"email":{"email":"jason820620@gmail.com","text":"jason820620@gmail.com"},"text1":"Test","text9":"test","text__1":"@1234","numbers5":2,"numbers3":1,"text98":"test","label6__1":{"index":3},"checkbox__1":{"checked":"true"}}]';
+        print_r($vals);
         try{
             $data = @file_get_contents($apiUrl, false, stream_context_create([
             'http' => [
@@ -108,16 +110,16 @@ Route::get('/testHandleMondayMutation/{id}', function(string $order_id) {
             ]));
             $responseContent = json_decode($data, true);
 
-            foreach($vals as $val) {
-                echo $val;
-            }
-            if(array_key_exists('error_message', $responseContent) || $responseContent == null) {
-                $error = new PaymentEntryError();
+            // foreach($vals as $val) {
+            //     echo $val;
+            // }
+            // if(array_key_exists('error_message', $responseContent) || $responseContent == null) {
+            //     $error = new PaymentEntryError();
 
-                $error->payment_id = $order_id;
-                $error->error = array_key_exists('error_message', $responseContent) ? $responseContent['error_message'] : null;
-                $error->save();
-            }
+            //     $error->payment_id = $order_id;
+            //     $error->error = array_key_exists('error_message', $responseContent) ? $responseContent['error_message'] : null;
+            //     $error->save();
+            // }
         } catch(Exception $ex) {
             echo $ex;
         }
