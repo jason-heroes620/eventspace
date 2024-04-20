@@ -61,7 +61,8 @@ Route::get('/testHandleMondayMutation/{id}', function(string $order_id) {
                                 ->get(['categories.id']);
         $categories = [];
         foreach($payment_categories as $cat) {
-            $categories[] = EventCategories::where('event_id', $payment->event_id)->where('category_id', $cat->id)->first(['monday_category_id']);
+            $id = EventCategories::where('event_id', $payment->event_id)->where('category_id', $cat->id)->first(['monday_category_id']);
+            $categories[] = $id->monday_category_id;
         }
         
         $event_booths = DB::table("event_payments")
@@ -81,7 +82,7 @@ Route::get('/testHandleMondayMutation/{id}', function(string $order_id) {
             [
             "status" => ["label" => "Payment Received"],
             "date4" => ['date' => date('Y-m-d', strtotime($payment->created)), 'time' =>date('H:i:s', strtotime($payment->created))],
-            "product_category__1" => ["labels" => $categories],
+            "product_category__1" => ["index" => $categories],
             "text" => $payment->contact_person,
             "phone" => ["phone" => $payment->contact_no, "countryShortName" => "MY"],
             "email" => ["email" => $payment->email, "text" => $payment->email],
