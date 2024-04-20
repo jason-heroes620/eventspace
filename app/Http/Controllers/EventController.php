@@ -28,6 +28,6 @@ class EventController extends Controller
     }
 
     private function getEventById($id) {
-        return Events::where("status", 0)->where("id", $id)->get();
+        return Events::where("status", 0)->where("id", $id)->first();
     }
 }

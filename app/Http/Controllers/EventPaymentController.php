@@ -9,6 +9,11 @@ use App\Models\EventPayments;
 use App\Models\PaymentCategories;
 use App\Models\PaymentDetail;
 use App\Models\PaymentHistory;
+use App\Models\Events;
+use App\Models\PaymentEntryError;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\PaymentReceived;
+use App\Mail\PaymentNotification;
 
 class EventPaymentController extends Controller
 {
@@ -60,9 +65,27 @@ class EventPaymentController extends Controller
     }
 
     public function eghlpaymentcallback(Request $req) {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 'GET') {
             if(!empty($req->post())) {
                 $this->paymentCallback($req->post());
+            } else {
+                $payment['TransactionType'] = $req->TransactionType;
+                $payment['PaymentID']       = $req->PaymentID;
+                $payment['ServiceID']       = $req->ServiceID;
+                $payment['OrderNumber']     = $req->OrderNumber;
+                $payment['Amount']          = $req->Amount;
+                $payment['CurrencyCode']    = $req->CurrencyCode;
+                $payment['TxnID']           = $req->TxnID;
+                $payment['PymtMethod']      = $req->PymtMethod;
+                $payment['TxnStatus']       = $req->TxnStatus;
+                $payment['AuthCode']        = $req->AuthCode;
+                $payment['TxnMessage']      = $req->TxnMessage;
+                $payment['IssuingBank']     = $req->IssuingBank;
+                $payment['HashValue']       = $req->HashValue;
+                $payment['HashValue2']      = $req->HashValue2;
+                $payment['BankRefNo']       = $req->BankRefNo;
+
+                $this->paymentCallback($payment);
             }
         } else {
             return $this->sendError('', ['error' => 'Allowed headers POST'], 405);
@@ -76,7 +99,7 @@ class EventPaymentController extends Controller
         $OrderNumber = $payment['OrderNumber'];
         $Amount = $payment['Amount'];
         $CurrencyCode = $payment['CurrencyCode'];
-        $TxnID = $payment['TxnID'];
+        $TxnID = !empty($payment['TxnID']) ? $payment['TxnID'] : '';
         $PymtMethod = $payment['PymtMethod'];
         $TxnStatus = $payment['TxnStatus'];
         $AuthCode = (!empty($payment['AuthCode'])) ? $payment['AuthCode'] : "";
@@ -84,7 +107,7 @@ class EventPaymentController extends Controller
         $IssuingBank = (!empty($payment['IssuingBank'])) ? $payment['IssuingBank'] : "";
         $HashValue = $payment['HashValue'];
         $HashValue2 = $payment['HashValue2'];
-        $BankRefNo = $payment['BankRefNo'];
+        $BankRefNo = !empty($payment['BankRefNo']) ? $payment['BankRefNo'] : '';
 
         $payment_detail = new PaymentDetail;
         $payment_history = new PaymentHistory;
@@ -128,7 +151,13 @@ class EventPaymentController extends Controller
                     ['status' => $payment_status]
                 );
         $domain = "https://event-payment.heroes.my/paymentSummary/".$OrderNumber."/status/".$payment_status;        
-        // return Redirect::to($domain);
+
+        if($TxnStatus == 0) {
+            handlePaymentEmails($OrderNumber);
+            handlePaymentNotification($OrderNumber);
+            handleMondayMutation($OrderNumber);
+        }
+
         return redirect()->away($domain)->send();
     }
 
@@ -138,5 +167,92 @@ class EventPaymentController extends Controller
          ->where('event_payments.id', '=', $id);
          
          return $query->get(['event_payments.id', 'event_payments.payment', 'event_payments.contact_person', 'event_payments.email', 'events.event_name']);
+    }
+
+    private function handlePaymentEmails($order_id) {
+        $payment_info = EventPayments::where('id', $order_id)->first();
+
+        $event = Events::where('id', $payment_info->event_id)
+                 ->first(['event_name']);
+
+        Mail::to($payment_info->email)
+        ->send(new PaymentReceived($event, $payment_info));
+    }
+
+    private function handlePaymentNotification($order_id) {
+        $payment_info = EventPayments::where('id', $order_id)->first();
+
+        $event = Events::where('id', $payment_info->event_id)
+                 ->first(['event_name']);
+
+        Mail::to('purchases@heroes.my')
+        ->send(new PaymentNotification($event, $payment_info));
+    }
+
+    private function handleMondayMutation($order_id) {
+        $payment = EventPayments::where('id', $order_id)->first();
+        $event = Events::where('id', $payment->event_id)->first();
+        $payment_categories = DB::table('event_payments')
+                                ->leftJoin('payment_categories', 'payment_categories.payment_id', '=', 'event_payments.id')
+                                ->leftJoin('categories', 'payment_categories.category_id', '=', 'categories.id')
+                                ->where('event_payments.id', $order_id)
+                                ->get(['categories.category']);
+        $categories = [];
+        foreach($payment_categories as $cat) {
+            $categories[] = $cat->category;
+        }
+        
+        $event_booths = DB::table("event_payments")
+                       ->leftJoin("booths", "event_payments.booth_id", '=', "booths.id")
+                       ->where("event_payments.id", $order_id)
+                       ->first(["booths.id"]);
+        $booth = EventBooth::where("event_id", $payment->event_id)->where('booth_id', $event_booths->id)->first();
+
+        $token = 'eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjM0ODA5NDQzMCwiYWFpIjoxMSwidWlkIjoyNTk3MzUyMSwiaWFkIjoiMjAyNC0wNC0xN1QwNDowODo1MC4wMDBaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MTA0MzIzNTUsInJnbiI6InVzZTEifQ.-HHtAXfVR46gAFuic8jMK5DLB2CMone00q8qZ6ydlGE';
+        $apiUrl = 'https://api.monday.com/v2';
+        $headers = ['Content-Type: application/json', 'Authorization: ' . $token];
+
+        $query = 'mutation ($item_name:String!, $columnVals: JSON!){ create_item (board_id: 6461771278, group_id: "topics", item_name: $item_name, column_values: $columnVals) { id } }';
+        $vals = [
+            "item_name" => $payment->organization,
+            "columnVals" => json_encode(
+            [
+            "status" => ["label" => "Payment Received"],
+            "date4" => ['date' => date('Y-m-d', strtotime($payment->created)), 'time' =>date('H:i:s', strtotime($payment->created))],
+            "product_category__1" => ["labels" => $categories],
+            "text" => $payment->contact_person,
+            "phone" => ["phone" => $payment->contact_no, "countryShortName" => "MY"],
+            "email" => ["email" => $payment->email, "text" => $payment->email],
+            "text1" => $payment->organization,
+            "text9" => $payment->registration,
+            "text__1" => $payment->social_media_account,
+            "numbers5" => $payment->participants,
+            "numbers3" => $payment->booth_qty,
+            "text98" => $payment->description,
+            "label6__1" => ["index" => $booth->monday_booth_id],
+            "checkbox__1" => $payment->plug == 'Y' ? ["checked" => "true"] : ["checked" => "false"] 
+        ])
+        ];
+
+        try{
+            $data = @file_get_contents($apiUrl, false, stream_context_create([
+            'http' => [
+            'method' => 'POST',
+            'header' => $headers,
+            'content' => json_encode(['query' => $query, 'variables' => $vals]),
+            ]
+            ]));
+            $responseContent = json_decode($data, true);
+
+            if(!empty(json_encode($responseContent['error_message']))) {
+                $error = new PaymentEntryError();
+
+                $error->payment_id = $order_id;
+                $error->error = $responseContent['error_message'];
+                $error->save();
+            }
+        } catch(error) {
+           
+        }
     }
 }
