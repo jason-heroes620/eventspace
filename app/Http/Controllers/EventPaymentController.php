@@ -153,9 +153,9 @@ class EventPaymentController extends Controller
         $domain = "https://event-payment.heroes.my/paymentSummary/".$OrderNumber."/status/".$payment_status;        
 
         if($TxnStatus == 0) {
-            handlePaymentEmails($OrderNumber);
-            handlePaymentNotification($OrderNumber);
-            handleMondayMutation($OrderNumber);
+            $this->handlePaymentEmails($OrderNumber);
+            $this->handlePaymentNotification($OrderNumber);
+            $this->handleMondayMutation($OrderNumber);
         }
 
         return redirect()->away($domain)->send();
