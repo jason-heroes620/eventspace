@@ -231,7 +231,7 @@ class EventPaymentController extends Controller
             [
             "status" => ["label" => "Payment Received"],
             "date4" => ['date' => date('Y-m-d', strtotime($payment->created)), 'time' =>date('H:i:s', strtotime($payment->created))],
-            "product_category__1" => ["index" => $categories],
+            "product_category__1" => ["ids" => $categories],
             "text" => $payment->contact_person,
             "phone" => ["phone" => $payment->contact_no, "countryShortName" => "MY"],
             "email" => ["email" => $payment->email, "text" => $payment->email],
@@ -242,7 +242,7 @@ class EventPaymentController extends Controller
             "numbers3" => $payment->booth_qty,
             "text98" => $payment->description,
             "label6__1" => ["index" => $booth->monday_booth_id],
-            "checkbox__1" => $payment->plug == 'Y' ? ["checked" => "true"] : ["checked" => "false"] 
+            "checkbox__1" => $payment->plug == 'Y' ? ["checked" => "true"] : ["checked" => "false"]
         ])
         ];
 
