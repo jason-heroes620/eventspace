@@ -107,7 +107,9 @@ Route::get('/testHandleMondayMutation/{id}', function(string $order_id) {
             ]));
             $responseContent = json_decode($data, true);
 
-            echo $vals;
+            foreach($vals as $val) {
+                echo $val;
+            }
             if(array_key_exists('error_message', $responseContent) || $responseContent == null) {
                 $error = new PaymentEntryError();
 
