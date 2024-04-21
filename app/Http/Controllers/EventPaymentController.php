@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\PaymentReceived;
 use App\Mail\PaymentNotification;
 use GuzzleHttp\Client;
+use Log;
 
 class EventPaymentController extends Controller
 {
@@ -157,13 +158,17 @@ class EventPaymentController extends Controller
         $domain = "https://event-payment.heroes.my/paymentSummary/".$OrderNumber."/status/".$payment_status;        
 
         if($TxnStatus == 0 && !$this->checkIfPaymentIdExists($PaymentID)) {
-            $this->handlePaymentEmails($OrderNumber);
-            $this->handlePaymentNotification($OrderNumber);
-            $this->handleMondayMutation($OrderNumber);
+            try{
+                $this->handlePaymentEmails($OrderNumber);
+                $this->handlePaymentNotification($OrderNumber);
+                $this->handleMondayMutation($OrderNumber);
 
-            $payment_log = new PaymentLogs;
-            $payment_log->payment_id = $PaymentID;
-            $payment_log->save();
+                $payment_log = new PaymentLogs;
+                $payment_log->payment_id = $PaymentID;
+                $payment_log->save();
+            } catch(Throwable $ex) {
+                Log::error($ex);
+            }
         }
 
         return redirect()->away($domain)->send();
@@ -194,8 +199,8 @@ class EventPaymentController extends Controller
         try{
             Mail::to($payment_info->email)
             ->send(new PaymentReceived($event, $payment_info));
-        } catch(Exception $ex) {
-
+        } catch(Throwable $ex) {
+            Log::error($ex);
         }
     }
 
@@ -208,8 +213,8 @@ class EventPaymentController extends Controller
         try{
             Mail::to('purchases@heroes.my')
             ->send(new PaymentNotification($event, $payment_info));
-        } catch(Exception $ex) {
-
+        } catch(Throwable $ex) {
+            Log::error($ex);
         }
     }
 
@@ -279,7 +284,7 @@ class EventPaymentController extends Controller
                 $error->error = $data->error_message;
                 $error->save();
             }
-        } catch(Exception $ex) {
+        } catch(Throwable $ex) {
                 $error = new PaymentEntryError();
 
                 $error->payment_id = $order_id;

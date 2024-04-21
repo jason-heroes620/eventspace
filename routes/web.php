@@ -12,6 +12,7 @@ use App\Models\PaymentEntryError;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use GuzzleHttp\Client;
+use Log;
 
 
 Route::get('/', function () {
@@ -48,8 +49,13 @@ Route::get('/notification-mail', function () {
         $event = Events::where('id', $payment_info->event_id)
         ->first();
 
-        Mail::to('jason820620@gmail.com')
-        ->send(new PaymentNotification($event, $payment_info));
+        try{
+            Mail::to('abc@eff.ccdvb')
+            ->send(new PaymentNotification($event, $payment_info)); 
+        } catch(Throwable $ex) {
+            Log::error($ex);
+        }
+        echo 'Test';
 });
 
 Route::get('/testHandleMondayMutation/{id}', function(string $order_id) {
