@@ -257,14 +257,15 @@ class EventPaymentController extends Controller
             // ]
             // ]));
             // $responseContent = json_decode($data, true);
-
+            $data = json_decode($responseContent->getBody());
+            if(!empty($data->error_message)) {
             // if(array_key_exists('error_message', $responseContent)) {
-            //     $error = new PaymentEntryError();
+                $error = new PaymentEntryError();
 
-            //     $error->payment_id = $order_id;
-            //     $error->error = $responseContent['error_message'];
-            //     $error->save();
-            // }
+                $error->payment_id = $order_id;
+                $error->error = $data->error_message;
+                $error->save();
+            }
         } catch(Exception $ex) {
                 $error = new PaymentEntryError();
 

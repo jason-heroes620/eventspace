@@ -123,7 +123,11 @@ Route::get('/testHandleMondayMutation/{id}', function(string $order_id) {
             //     $error->error = array_key_exists('error_message', $responseContent) ? $responseContent['error_message'] : null;
             //     $error->save();
             // }
-             echo json_encode($responseContent);
+            $data = json_decode($responseContent->getBody());
+            if(!empty($data->error_message)) {
+                echo $data->error_message;
+            }
+             echo $responseContent->getBody();
         } catch(Exception $ex) {
             echo $ex;
         }
