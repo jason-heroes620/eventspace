@@ -12,6 +12,7 @@ use App\Models\PaymentHistory;
 use App\Models\Events;
 use App\Models\EventBooth;
 use App\Models\PaymentEntryError;
+use App\Models\PaymentLogs;
 use App\Models\EventCategories;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\PaymentReceived;
@@ -155,13 +156,25 @@ class EventPaymentController extends Controller
                 );
         $domain = "https://event-payment.heroes.my/paymentSummary/".$OrderNumber."/status/".$payment_status;        
 
-        if($TxnStatus == 0) {
+        if($TxnStatus == 0 && !$this->checkIfPaymentIdExists($PaymentID)) {
             $this->handlePaymentEmails($OrderNumber);
             $this->handlePaymentNotification($OrderNumber);
             $this->handleMondayMutation($OrderNumber);
+
+            $payment_log = new PaymentLogs;
+            $payment_log->payment_id = $PaymentID;
+            $payment_log->save();
         }
 
         return redirect()->away($domain)->send();
+    }
+
+    private function checkIfPaymentIdExists($payment_id) {
+        $payment = PaymentLogs::where('payment_id', $payment_id)->get()->count();
+        if($payment > 0) {
+            return true;
+        }
+        return false;
     }
 
     private function getPayment($id) {
@@ -169,7 +182,7 @@ class EventPaymentController extends Controller
          ->leftJoin('events', 'events.id', '=', 'event_payments.event_id')
          ->where('event_payments.id', '=', $id);
          
-         return $query->get(['event_payments.id', 'event_payments.payment', 'event_payments.contact_person', 'event_payments.email', 'events.event_name']);
+         return $query->get(['event_payments.id', 'event_payments.payment', 'event_payments.contact_person', 'event_payments.email', 'events.event_name', 'event_payments.status']);
     }
 
     private function handlePaymentEmails($order_id) {
