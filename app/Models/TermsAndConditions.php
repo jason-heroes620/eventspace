@@ -5,12 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class PaymentLogs extends Model
+class TermsAndConditions extends Model
 {
     use HasFactory;
 
-    protected $table = 'payment_logs';
 
-    const CREATED_AT = 'created';
+    protected $table = 'event_tnc';
+
+    const CREATED_AT = null;
     const UPDATED_AT = null;
 }

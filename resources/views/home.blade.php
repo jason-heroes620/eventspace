@@ -31,34 +31,44 @@
             </div>
         </div>
     </nav>
-    <div class="container">
-        <h1> Welcome, {{ Auth::user()->name }}</h1>
+    <div class="container py-2">
+        <h3> Welcome, {{ Auth::user()->name }}</h3>
     </div>
-    <div class="container mx-auto row justify-content-evenly">
+    <div class="container mx-auto row justify-content-evenly py-4">
         @foreach($applications as $app)
 
         @if ($app->status == 'A')
-        <div class="col-8 col-md-3 border bg-success ">
-            <div class="row justify-content-center">
-                <div class="row px-4">
-                    <span class="text-left text-white py-2 bg-success">
-                        <h6>APPROVED</h6>
-                    </span>
-                    <span class="text-center text-white py-2">
-                        <h5>{{ $app->total }}</h5>
-                    </span>
-                </div>
+        <div class="col-8 col-md-3 border bg-success">
+            <div class="row justify-content-center px-4 py-2 align-items-center">
+                <span class="col-10 text-left text-white py-2 bg-success">
+                    <h6>APPROVED</h6>
+                </span>
+                <span class="col-2 text-center text-white py-2">
+                    <h4>{{ $app->total }}</h4>
+                </span>
             </div>
         </div>
         @elseif ($app->status == 'R')
-        <div class="col-8 col-md-3 border py-2">
-            <span>REJECTED</span>
-            <span>{{ $app->total }}</span>
+        <div class="col-8 col-md-3 border bg-danger ">
+            <div class="row justify-content-center px-4 py-2 align-items-center">
+                <span class="col-10 text-left text-white py-2 bg-danger">
+                    <h6>REJECTED</h6>
+                </span>
+                <span class="col-2 text-center text-white py-2">
+                    <h4>{{ $app->total }}</h4>
+                </span>
+            </div>
         </div>
         @else
-        <div class="col-8 col-md-3 border">
-            <span>NEW</span>
-            <span>{{ $app->total }}</span>
+        <div class="col-8 col-md-3 border bg-info ">
+            <div class="row justify-content-center px-4 py-2 align-items-center">
+                <span class="col-10 text-left text-white py-2 bg-info">
+                    <h6>NEW</h6>
+                </span>
+                <span class="col-2 text-center text-white py-2">
+                    <h4>{{ $app->total }}</h4>
+                </span>
+            </div>
         </div>
         @endif
         @endforeach

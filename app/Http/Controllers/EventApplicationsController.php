@@ -199,7 +199,7 @@ class EventApplicationsController extends Controller
                     ->send(new ApplicationApprovedResponse($event, $application, $payment_link));
             } else {
                 Mail::to($application->email)
-                    ->later(now()->addMinute(1), new ApplicationRejectedResponse($event, $application));
+                    ->later(now()->addMinute(10), new ApplicationRejectedResponse($event, $application));
             }
         } catch (Throwable $ex) {
             Log::error($ex);

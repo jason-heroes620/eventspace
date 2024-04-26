@@ -9,6 +9,7 @@ use App\Http\Controllers\EventBoothController;
 use App\Http\Controllers\EventPaymentController;
 use App\Http\Controllers\EventCategoriesController;
 use App\Http\Controllers\EventApplicationsController;
+use App\Http\Controllers\TermsAndConditionsController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -34,3 +35,5 @@ Route::get('EGHLPaymentCallback', [EventPaymentController::class, 'eghlpaymentca
 
 Route::post('applications', [EventApplicationsController::class, 'applications']);
 Route::get('applications/{id?}', [EventApplicationsController::class, 'applications']);
+
+Route::get('tnc/{id?}', [TermsAndConditionsController::class, 'tnc']);
