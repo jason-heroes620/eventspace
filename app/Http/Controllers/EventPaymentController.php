@@ -10,6 +10,7 @@ use App\Models\PaymentCategories;
 use App\Models\PaymentDetail;
 use App\Models\PaymentHistory;
 use App\Models\Events;
+use App\Models\Booths;
 use App\Models\EventBooth;
 use App\Models\PaymentEntryError;
 use App\Models\PaymentLogs;
@@ -17,16 +18,19 @@ use App\Models\EventCategories;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\PaymentReceived;
 use App\Mail\PaymentNotification;
+use App\Models\EventApplications;
 use GuzzleHttp\Client;
-use Log;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class EventPaymentController extends Controller
 {
     //
-    public function payment(Request $req) {
-         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $id = $this->addPayment($req->post());
-            return $this->sendResponse(['paymentId' => $id], 200);
+    public function payment(Request $req)
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // $id = $this->addPayment($req->post());
+            // return $this->sendResponse(['paymentId' => $id], 200);
         } else if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $data = $this->getPayment($req->id);
             return $this->sendResponse($data, 200);
@@ -35,43 +39,83 @@ class EventPaymentController extends Controller
         }
     }
 
-    private function addPayment($payment) {
-        $info = new EventPayments;
+    // private function addPayment($payment)
+    // {
+    //     $info = new EventPayments;
 
-        $info->event_id = $payment['eventId'];
-        $info->contact_person = $payment['contactPerson'];
-        $info->contact_no = $payment['contactNo'];
-        $info->email = $payment['email'];
-        $info->organization = $payment['organization'];
-        $info->registration = $payment['companyRegistration'];
-        $info->participants = $payment['participants'];
-        $info->social_media_account = empty($payment['socialMediaAccount']) ? '' : $payment['socialMediaAccount'];
-        $info->description = $payment['productDescription'];
-        $info->requirements = empty($payment['requirements']) ? '' : $payment['requirements'];
-        $info->plug = $payment['plugPoints'] == 'Yes' ? 'Y' : 'N';
-        $info->booth_id = $payment['boothId'];
-        $info->booth_qty = $payment['noOfBooth'];
-        $info->no_of_days = $payment['noOfDays'];
-        $info->payment = $payment['total'];
-        $info->payment_id = $payment['paymentId'];
+    //     $info->event_id = $payment['eventId'];
+    //     $info->contact_person = $payment['contactPerson'];
+    //     $info->contact_no = $payment['contactNo'];
+    //     $info->email = $payment['email'];
+    //     $info->organization = $payment['organization'];
+    //     $info->registration = $payment['companyRegistration'];
+    //     $info->participants = $payment['participants'];
+    //     $info->social_media_account = empty($payment['socialMediaAccount']) ? '' : $payment['socialMediaAccount'];
+    //     $info->description = $payment['productDescription'];
+    //     $info->requirements = empty($payment['requirements']) ? '' : $payment['requirements'];
+    //     $info->plug = $payment['plugPoints'] == 'Yes' ? 'Y' : 'N';
+    //     $info->booth_id = $payment['boothId'];
+    //     $info->booth_qty = $payment['noOfBooth'];
+    //     $info->no_of_days = $payment['noOfDays'];
+    //     $info->payment = $payment['total'];
+    //     $info->payment_id = $payment['paymentId'];
 
-        $info->save();
-        $id = $info->id;
+    //     $info->save();
+    //     $id = $info->id;
 
-        foreach($payment['categoryId'] as $cat) {
-            $payment_categories = new PaymentCategories;
-            $payment_categories->payment_id = $id;
-            $payment_categories->category_id = $cat;
-            
-            $payment_categories->save();
+    //     foreach ($payment['categoryId'] as $cat) {
+    //         $payment_categories = new PaymentCategories;
+    //         $payment_categories->payment_id = $id;
+    //         $payment_categories->category_id = $cat;
+
+    //         $payment_categories->save();
+    //     }
+
+    //     return $id;
+    // }
+
+    public function paymentCode(Request $req)
+    {
+        if ($_SERVER['REQUEST_METHOD'] === "GET") {
+            if (isset($req->id) && isset($req->code)) {
+                $data = $this->getPaymentByCode($req->id, $req->code);
+
+                return $this->sendResponse($data, 200);
+            } else {
+                return $this->sendError('', ['error' => 'Missing required parameters'], 405);
+            }
+        } else {
+            return $this->sendError('', ['error' => 'Allowed headers GET'], 405);
         }
-
-        return $id;
     }
 
-    public function eghlpaymentcallback(Request $req) {
+    private function getPaymentByCode($id, $code)
+    {
+        $payment = EventPayments::where('id', $id)
+            ->where('application_code', $code)
+            ->first();
+
+        $application = EventApplications::where('id', $payment->application_id)
+            ->where('application_code', $code)
+            ->where('status', 'A')
+            ->first();
+
+        $booth = Booths::where('id', $application->booth_id)
+            ->first();
+
+        $event = Events::where('id', $application->event_id)->first();
+
+        if (!empty($application)) {
+            return ['payment' => $payment, 'application' => $application, 'event' => $event, 'booth' => $booth];
+        } else {
+            return null;
+        }
+    }
+
+    public function eghlpaymentcallback(Request $req)
+    {
         if ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 'GET') {
-            if(!empty($req->post())) {
+            if (!empty($req->post())) {
                 $this->paymentCallback($req->post());
             } else {
                 $payment['TransactionType'] = $req->TransactionType;
@@ -97,7 +141,8 @@ class EventPaymentController extends Controller
         }
     }
 
-    private function paymentCallback($payment) {
+    private function paymentCallback($payment)
+    {
         $TransactionType = $payment['TransactionType'];
         $PaymentID = $payment['PaymentID'];
         $ServiceID = $payment['ServiceID'];
@@ -119,18 +164,18 @@ class EventPaymentController extends Controller
 
         $payment_status = 1;
 
-        if($TxnStatus == 0) {
+        if ($TxnStatus == 0) {
             $payment_detail->status = $payment_history->status = $payment_status = 2;
             $payment_history->payment_description = "Successful payment (eGHL Payment) $CurrencyCode $Amount [BankRefNo: $BankRefNo] [TxnStatus: $TxnStatus] [Payment method: $PymtMethod] [Issuing Bank: $IssuingBank]";
-        } else if($TxnStatus == 1) {
-             if($TxnMessage == "Buyer Cancelled") {
+        } else if ($TxnStatus == 1) {
+            if ($TxnMessage == "Buyer Cancelled") {
                 $payment_detail->status = $payment_history->status = $payment_status = 3;
                 $payment_history->payment_description = "Payment Cancelled by Shopper(eGHL Response)";
-             } else {
+            } else {
                 $payment_detail->status = $payment_history->status = $payment_status = 4;
                 $payment_history->payment_description = "Failed Payment (eGHL Response) $CurrencyCode $Amount [BankRefNo: $BankRefNo] [TxnStatus:$TxnStatus] [Payment method:$PymtMethod]";
-             }
-        } else if($TxnStatus == 2) {
+            }
+        } else if ($TxnStatus == 2) {
             $payment_detail->status = $payment_history->status = $payment_status = 1;
             $payment_history->payment_description = "Pending Payment (eGHL Response) $CurrencyCode $Amount [BankRefNo: $BankRefNo] [TxnStatus:$TxnStatus] [Payment method:$PymtMethod]";
         }
@@ -146,19 +191,19 @@ class EventPaymentController extends Controller
         $payment_history->payment_id = $OrderNumber;
         $payment_history->payment_description = $TxnMessage;
         $payment_history->save();
-        
+
         // update event_payment status
         DB::table('event_payments')
-                ->updateOrInsert(
-                    [
-                        'id' => $OrderNumber
-                    ],
-                    ['status' => $payment_status]
-                );
-        $domain = "https://event-payment.heroes.my/paymentSummary/".$OrderNumber."/status/".$payment_status;        
+            ->updateOrInsert(
+                [
+                    'id' => $OrderNumber
+                ],
+                ['status' => $payment_status]
+            );
+        $domain = "https://event-payment.heroes.my/paymentSummary/" . $OrderNumber . "/status/" . $payment_status;
 
-        if($TxnStatus == 0 && !$this->checkIfPaymentIdExists($PaymentID)) {
-            try{
+        if ($TxnStatus == 0 && !$this->checkIfPaymentIdExists($PaymentID)) {
+            try {
                 $this->handlePaymentEmails($OrderNumber);
                 $this->handlePaymentNotification($OrderNumber);
                 $this->handleMondayMutation($OrderNumber);
@@ -166,7 +211,7 @@ class EventPaymentController extends Controller
                 $payment_log = new PaymentLogs;
                 $payment_log->payment_id = $PaymentID;
                 $payment_log->save();
-            } catch(Throwable $ex) {
+            } catch (Throwable $ex) {
                 Log::error($ex);
             }
         }
@@ -174,122 +219,133 @@ class EventPaymentController extends Controller
         return redirect()->away($domain)->send();
     }
 
-    private function checkIfPaymentIdExists($payment_id) {
+    private function checkIfPaymentIdExists($payment_id)
+    {
         $payment = PaymentLogs::where('payment_id', $payment_id)->get()->count();
-        if($payment > 0) {
+        if ($payment > 0) {
             return true;
         }
         return false;
     }
 
-    private function getPayment($id) {
-         $query = DB::table('event_payments')
-         ->leftJoin('events', 'events.id', '=', 'event_payments.event_id')
-         ->where('event_payments.id', '=', $id);
-         
-         return $query->get(['event_payments.id', 'event_payments.payment', 'event_payments.contact_person', 'event_payments.email', 'events.event_name', 'event_payments.status']);
+    private function getPayment($id)
+    {
+        $payment = EventPayments::where('id', $id)
+            ->first();
+
+        $application = EventApplications::where('id', $payment->application_id)
+            ->where('status', 'A')
+            ->first();
+
+        if (!empty($application)) {
+            $event = Events::where('id', $application->event_id)->first();
+
+            $booth = Booths::where('id', $application->booth_id)
+                ->first();
+
+            return ['payment' => $payment, 'application' => $application, 'event' => $event, 'booth' => $booth];
+        } else {
+            return null;
+        }
     }
 
-    private function handlePaymentEmails($order_id) {
+    private function handlePaymentEmails($order_id)
+    {
         $payment_info = EventPayments::where('id', $order_id)->first();
 
-        $event = Events::where('id', $payment_info->event_id)
-                 ->first();
+        $application = EventApplications::where('id', $payment_info->application_id)
+            ->first();
+        $event = Events::where('id', $application->event_id)->first();
 
-        try{
+        try {
             Mail::to($payment_info->email)
-            ->send(new PaymentReceived($event, $payment_info));
-        } catch(Throwable $ex) {
+                ->send(new PaymentReceived($event, $payment_info));
+        } catch (Throwable $ex) {
             Log::error($ex);
         }
     }
 
-    private function handlePaymentNotification($order_id) {
+    private function handlePaymentNotification($order_id)
+    {
         $payment_info = EventPayments::where('id', $order_id)->first();
 
-        $event = Events::where('id', $payment_info->event_id)
-                 ->first();
+        $application = EventApplications::where('id', $payment_info->application_id)
+            ->first();
+        $event = Events::where('id', $application->event_id)->first();
 
-        try{
+        try {
             Mail::to('purchases@heroes.my')
-            ->send(new PaymentNotification($event, $payment_info));
-        } catch(Throwable $ex) {
+                ->send(new PaymentNotification($event, $payment_info));
+        } catch (Throwable $ex) {
             Log::error($ex);
         }
     }
 
-    private function handleMondayMutation($order_id) {
+    private function handleMondayMutation($order_id)
+    {
         $payment = EventPayments::where('id', $order_id)->first();
-        $event = Events::where('id', $payment->event_id)->first();
-        $payment_categories = DB::table('event_payments')
-                                ->leftJoin('payment_categories', 'payment_categories.payment_id', '=', 'event_payments.id')
-                                ->leftJoin('categories', 'payment_categories.category_id', '=', 'categories.id')
-                                ->where('event_payments.id', $order_id)
-                                ->get(['categories.id']);
+        $application = EventApplications::where('id', $payment->application_id)->first();
+        $application_categories = DB::table('event_applications')
+            ->leftJoin('application_categories', 'application_categories.application_id', '=', 'event_applications.id')
+            ->leftJoin('categories', 'application_categories.category_id', '=', 'categories.id')
+            ->where('event_applications.id', $payment->application_id)
+            ->get(['categories.id']);
         $categories = [];
-        foreach($payment_categories as $cat) {
-            $id = EventCategories::where('event_id', $payment->event_id)->where('category_id', $cat->id)->first(['monday_category_id']);
+        foreach ($application_categories as $cat) {
+            $id = EventCategories::where('event_id', $application->event_id)->where('category_id', $cat->id)->first(['monday_category_id']);
             $categories[] = $id->monday_category_id;
         }
-        
+
         $event_booths = DB::table("event_payments")
-                       ->leftJoin("booths", "event_payments.booth_id", '=', "booths.id")
-                       ->where("event_payments.id", $order_id)
-                       ->first(["booths.id"]);
-        $booth = EventBooth::where("event_id", $payment->event_id)->where('booth_id', $event_booths->id)->first();
+            ->leftJoin('event_applications', 'event_applications.id', '=', 'event_payments.application_id')
+            ->leftJoin("booths", "event_applications.booth_id", '=', "booths.id")
+            ->where("event_payments.id", $order_id)
+            ->first(["booths.id"]);
+        $booth = EventBooth::where("event_id", $application->event_id)->where('booth_id', $event_booths->id)->first();
 
         $token = 'eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjM0ODA5NDQzMCwiYWFpIjoxMSwidWlkIjoyNTk3MzUyMSwiaWFkIjoiMjAyNC0wNC0xN1QwNDowODo1MC4wMDBaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MTA0MzIzNTUsInJnbiI6InVzZTEifQ.-HHtAXfVR46gAFuic8jMK5DLB2CMone00q8qZ6ydlGE';
         $apiUrl = 'https://api.monday.com/v2';
-        $headers = ['Content-Type: application/json', 'Authorization: ' . $token];
 
         $query = 'mutation ($item_name:String!, $columnVals: JSON!){ create_item (board_id: 6461771278, group_id: "topics", item_name: $item_name, column_values: $columnVals) { id } }';
         $vals = [
-            "item_name" => $payment->organization,
+            "item_name" => $application->organization,
             "columnVals" => json_encode(
-            [
-            "status" => ["label" => "Payment Received"],
-            "date4" => ['date' => date('Y-m-d', strtotime($payment->created)), 'time' =>date('H:i:s', strtotime($payment->created))],
-            "product_category__1" => ["ids" => $categories],
-            "text" => $payment->contact_person,
-            "phone" => ["phone" => $payment->contact_no, "countryShortName" => "MY"],
-            "email" => ["email" => $payment->email, "text" => $payment->email],
-            "text1" => $payment->organization,
-            "text9" => $payment->registration,
-            "text__1" => $payment->social_media_account,
-            "numbers5" => $payment->participants,
-            "numbers3" => $payment->booth_qty,
-            "text98" => $payment->description,
-            "label6__1" => ["index" => $booth->monday_booth_id],
-            "checkbox__1" => $payment->plug == 'Y' ? ["checked" => "true"] : ["checked" => "false"]
-        ])
+                [
+                    "status" => ["label" => "Payment Received"],
+                    "date4" => ['date' => date('Y-m-d', strtotime($payment->created)), 'time' => date('H:i:s', strtotime($payment->created))],
+                    "product_category__1" => ["ids" => $categories],
+                    "text" => $application->contact_person,
+                    "phone" => ["phone" => $application->contact_no, "countryShortName" => "MY"],
+                    "email" => ["email" => $application->email, "text" => $application->email],
+                    "text1" => $application->organization,
+                    "text9" => $application->registration,
+                    "text__1" => $application->social_media_account,
+                    "numbers5" => $application->participants,
+                    "numbers3" => $application->booth_qty,
+                    "text98" => $application->description,
+                    "label6__1" => ["index" => $booth->monday_booth_id],
+                    "checkbox__1" => $application->plug == 'Y' ? ["checked" => "true"] : ["checked" => "false"]
+                ]
+            )
         ];
 
-        try{
-            $guzzleClient = new Client(array('headers'=>array('Content-Type'=>'application/json', 'Authorization'=>$token)));
+        try {
+            $guzzleClient = new Client(array('headers' => array('Content-Type' => 'application/json', 'Authorization' => $token)));
             $responseContent = $guzzleClient->post($apiUrl, ['body' =>  json_encode(['query' => $query, 'variables' => $vals])]);
-            // $data = @file_get_contents($apiUrl, false, stream_context_create([
-            // 'http' => [
-            // 'method' => 'POST',
-            // 'header' => $headers,
-            // 'content' => json_encode(['query' => $query, 'variables' => $vals]),
-            // ]
-            // ]));
-            // $responseContent = json_decode($data, true);
-            $data = json_decode($responseContent->getBody());
-            if(!empty($data->error_message)) {
-            // if(array_key_exists('error_message', $responseContent)) {
-                $error = new PaymentEntryError();
 
+            $data = json_decode($responseContent->getBody());
+            if (!empty($data->error_message)) {
+                $error = new PaymentEntryError();
                 $error->payment_id = $order_id;
                 $error->error = $data->error_message;
                 $error->save();
             }
-        } catch(Throwable $ex) {
-                $error = new PaymentEntryError();
+        } catch (Throwable $ex) {
+            $error = new PaymentEntryError();
 
-                $error->payment_id = $order_id;
-                $error->error = $ex;
-                $error->save();
+            $error->payment_id = $order_id;
+            $error->error = $ex;
+            $error->save();
         }
     }
 }

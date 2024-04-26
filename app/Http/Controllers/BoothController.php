@@ -8,10 +8,14 @@ use App\Models\Booths;
 class BoothController extends Controller
 {
     // Get all booths
-    public function booths()
+    public function booths(Request $req)
     {
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            $data = $this->getBooths();
+            if (isset($req->id)) {
+                $data = $this->getBoothById($req->id);
+            } else {
+                $data = $this->getBooths();
+            }
 
             return $this->sendResponse($data, 200);
         } else {
@@ -22,5 +26,10 @@ class BoothController extends Controller
     private function getBooths()
     {
         return Booths::where("status", 0)->orderBy("orders")->get();
+    }
+
+    public function getBoothById($id)
+    {
+        return Booths::where('id', $id)->first();
     }
 }

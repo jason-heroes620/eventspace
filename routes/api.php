@@ -8,6 +8,7 @@ use App\Http\Controllers\BoothController;
 use App\Http\Controllers\EventBoothController;
 use App\Http\Controllers\EventPaymentController;
 use App\Http\Controllers\EventCategoriesController;
+use App\Http\Controllers\EventApplicationsController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -22,10 +23,14 @@ Route::get('booths', [BoothController::class, 'booths']);
 
 Route::get('/eventbooth/{id?}', [EventBoothController::class, 'eventbooth']);
 
-Route::get('eventcategories/{id?}', [EventCategoriesController::class, 'eventcategories']);
+Route::get('eventcategories/{id?}', [EventCategoriesController::class, 'eventCategories']);
 
 Route::post('payment', [EventPaymentController::class, 'payment']);
 Route::get('payment/{id?}', [EventPaymentController::class, 'payment']);
+Route::get('makepayment/{id?}/code/{code?}', [EventPaymentController::class, 'paymentCode']);
 
 Route::post('EGHLPaymentCallback', [EventPaymentController::class, 'eghlpaymentcallback']);
 Route::get('EGHLPaymentCallback', [EventPaymentController::class, 'eghlpaymentcallback']);
+
+Route::post('applications', [EventApplicationsController::class, 'applications']);
+Route::get('applications/{id?}', [EventApplicationsController::class, 'applications']);
