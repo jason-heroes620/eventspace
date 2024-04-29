@@ -109,7 +109,7 @@
                 </div>
                 <div class="row py-2">
                     <span class="col-12 col-md-4"><strong>Total (RM)</strong></span>
-                    <span class="col-12 col-md-8 py-2 border">{{ $total }}</span>
+                    <span class="col-12 col-md-8 py-2 border">{{ number_format((float)$total, '2','.',',') }}</span>
                 </div>
                 <div class="row py-2">
                     <span class="col-12 col-md-4"><strong>Status</strong></span>
@@ -136,7 +136,7 @@
             @if($payment_detail)
             <div class="row py-2">
                 <span class="col-12 col-md-4"><strong>Payment Total (RM)</strong></span>
-                <span class="col-12 col-md-8 py-2 border">{{ $payment->payment_total }}</span>
+                <span class="col-12 col-md-8 py-2 border">{{ number_format((float)$payment->payment_total, '2','.',',') }}</span>
             </div>
             <div class="row py-2">
                 <span class="col-12 col-md-4"><strong>Payment Date</strong></span>
@@ -149,7 +149,7 @@
             @else
             <div class="row py-2">
                 <span class="col-12 col-md-4"><strong>Total (RM)</strong></span>
-                <span class="col-12 col-md-8 py-2 border">{{ $payment->payment_total }}</span>
+                <span class="col-12 col-md-8 py-2 border">{{ number_format((float)$payment->payment_total, '2','.',',') }}</span>
             </div>
             @endif
         </div>

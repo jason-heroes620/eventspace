@@ -95,17 +95,16 @@ class EventPaymentController extends Controller
             ->where('application_code', $code)
             ->first();
 
-        $application = EventApplications::where('id', $payment->application_id)
-            ->where('application_code', $code)
-            ->where('status', 'A')
-            ->first();
+        if (!empty($payment)) {
+            $application = EventApplications::where('id', $payment->application_id)
+                ->where('application_code', $code)
+                ->where('status', 'A')
+                ->first();
 
-        $booth = Booths::where('id', $application->booth_id)
-            ->first();
+            $booth = Booths::where('id', $application->booth_id)
+                ->first();
 
-        $event = Events::where('id', $application->event_id)->first();
-
-        if (!empty($application)) {
+            $event = Events::where('id', $application->event_id)->first();
             return ['payment' => $payment, 'application' => $application, 'event' => $event, 'booth' => $booth];
         } else {
             return null;
