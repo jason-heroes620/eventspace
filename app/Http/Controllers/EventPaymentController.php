@@ -258,8 +258,8 @@ class EventPaymentController extends Controller
         $event = Events::where('id', $application->event_id)->first();
 
         try {
-            Mail::to($payment_info->email)
-                ->send(new PaymentReceived($event, $payment_info));
+            Mail::to($application->email)
+                ->send(new PaymentReceived($event, $application));
         } catch (Throwable $ex) {
             Log::error($ex);
         }
@@ -275,7 +275,7 @@ class EventPaymentController extends Controller
 
         try {
             Mail::to('purchases@heroes.my')
-                ->send(new PaymentNotification($event, $payment_info));
+                ->send(new PaymentNotification($event, $application, $payment_info));
         } catch (Throwable $ex) {
             Log::error($ex);
         }

@@ -2,13 +2,13 @@
 
 namespace App\Mail;
 
+use App\Models\EventApplications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-use App\Models\EventPayments;
 use App\Models\Events;
 
 class PaymentReceived extends Mailable
@@ -20,8 +20,9 @@ class PaymentReceived extends Mailable
      */
     public function __construct(
         protected Events $event,
-        protected EventPayments $payment,
-    ){}
+        protected EventApplications $application,
+    ) {
+    }
 
     /**
      * Get the message envelope.
@@ -40,12 +41,13 @@ class PaymentReceived extends Mailable
     {
         return new Content(
             view: 'mails.merchant-payment',
-            with: ['name' => $this->payment->contact_person, 
-                    'event_name' => $this->event->event_name,
-                    'event_date' => $this->event->event_date,
-                    'event_time' => $this->event->event_time,
-                    'event_location' => $this->event->event_location,
-                ]
+            with: [
+                'name' => $this->application->contact_person,
+                'event_name' => $this->event->event_name,
+                'event_date' => $this->event->event_date,
+                'event_time' => $this->event->event_time,
+                'event_location' => $this->event->event_location,
+            ]
         );
     }
 

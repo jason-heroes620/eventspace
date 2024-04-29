@@ -8,6 +8,7 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use App\Models\EventApplications;
 use App\Models\EventPayments;
 use App\Models\Events;
 
@@ -20,7 +21,10 @@ class PaymentNotification extends Mailable
      */
     public function __construct(
         protected Events $event,
-        protected EventPayments $payment){}
+        protected EventApplications $application,
+        protected EventPayments $payment
+    ) {
+    }
 
     /**
      * Get the message envelope.
@@ -39,14 +43,15 @@ class PaymentNotification extends Mailable
     {
         return new Content(
             view: 'mails.admin-payment',
-            with: ['contact_person' => $this->payment->contact_person, 
-                    'event_name' => $this->event->event_name,
-                    'contact_no' => $this->payment->contact_no,
-                    'email' => $this->payment->email,
-                    'organization' => $this->payment->organization,
-                    'payment_id' => $this->payment->id,
-                    'payment_date' => date('d/m/Y H:i', strtotime($this->payment->created))
-                ]
+            with: [
+                'contact_person' => $this->application->contact_person,
+                'event_name' => $this->event->event_name,
+                'contact_no' => $this->application->contact_no,
+                'email' => $this->application->email,
+                'organization' => $this->application->organization,
+                'payment_id' => $this->payment->id,
+                'payment_date' => date('d/m/Y H:i', strtotime($this->payment->created))
+            ]
         );
     }
 
