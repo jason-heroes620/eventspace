@@ -114,7 +114,7 @@ class EventApplicationsController extends Controller
     {
         $result = EventApplications::where('id', $id)->first();
         $payment = EventPayments::where('application_id', $id)->first();
-
+        $detail = array();
         if ($payment) {
             $detail = PaymentDetail::where('payment_id', $payment->id)->first();
         }
@@ -125,7 +125,7 @@ class EventApplicationsController extends Controller
             $pages = explode('=', $query);
             return [$result, $pages[1], $payment, $detail];
         }
-        return [$result, 1];
+        return [$result, 1, $payment, $detail];
     }
 
     private function getEventDays($event_id)
