@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Log;
+use App\Models\ApplicationError;
 
 Route::get('/', function () {
     return view('login');
@@ -79,14 +80,12 @@ Route::get('/notification-mail', function () {
     echo 'Test';
 });
 
-Route::get('/testHandleMondayMutation/{id}', function (string $order_id) {
-    // $order_id = 16;
-    $payment = EventPayments::where('id', $order_id)->first();
-    $application = EventApplications::where('id', $payment->application_id)->first();
+Route::get('/testHandleMondayMutation/{id}', function (string $application_id) {
+    $application = EventApplications::where('id', $application_id)->first();
     $application_categories = DB::table('event_applications')
         ->leftJoin('application_categories', 'application_categories.application_id', '=', 'event_applications.id')
         ->leftJoin('categories', 'application_categories.category_id', '=', 'categories.id')
-        ->where('event_applications.id', $payment->application_id)
+        ->where('event_applications.id', $application_id)
         ->get(['categories.id']);
     $categories = [];
     foreach ($application_categories as $cat) {
@@ -94,24 +93,22 @@ Route::get('/testHandleMondayMutation/{id}', function (string $order_id) {
         $categories[] = $id->monday_category_id;
     }
 
-    $event_booths = DB::table("event_payments")
-        ->leftJoin('event_applications', 'event_applications.id', '=', 'event_payments.application_id')
+    $event_booths = DB::table("event_applications")
         ->leftJoin("booths", "event_applications.booth_id", '=', "booths.id")
-        ->where("event_payments.id", $order_id)
+        ->where("event_applications.id", $application_id)
         ->first(["booths.id"]);
     $booth = EventBooth::where("event_id", $application->event_id)->where('booth_id', $event_booths->id)->first();
 
     $token = 'eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjM0ODA5NDQzMCwiYWFpIjoxMSwidWlkIjoyNTk3MzUyMSwiaWFkIjoiMjAyNC0wNC0xN1QwNDowODo1MC4wMDBaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MTA0MzIzNTUsInJnbiI6InVzZTEifQ.-HHtAXfVR46gAFuic8jMK5DLB2CMone00q8qZ6ydlGE';
     $apiUrl = 'https://api.monday.com/v2';
-    $headers = ['Content-Type: application/json', 'Authorization: ' . $token];
 
     $query = 'mutation ($item_name:String!, $columnVals: JSON!){ create_item (board_id: 6461771278, group_id: "topics", item_name: $item_name, column_values: $columnVals) { id } }';
     $vals = [
         "item_name" => $application->organization,
         "columnVals" => json_encode(
             [
-                "status" => ["label" => "Payment Received"],
-                "date4" => ['date' => date('Y-m-d', strtotime($payment->created)), 'time' => date('H:i:s', strtotime($payment->created))],
+                "status" => ["label" => "Pending"],
+                "date4" => ['date' => date('Y-m-d', strtotime($application->created)), 'time' => date('H:i:s', strtotime($application->created))],
                 "product_category__1" => ["ids" => $categories],
                 "text" => $application->contact_person,
                 "phone" => ["phone" => $application->contact_no, "countryShortName" => "MY"],
@@ -124,25 +121,23 @@ Route::get('/testHandleMondayMutation/{id}', function (string $order_id) {
                 "text98" => $application->description,
                 "label6__1" => ["index" => $booth->monday_booth_id],
                 "checkbox__1" => $application->plug == 'Y' ? ["checked" => "true"] : ["checked" => "false"]
-                // "checkbox__1" => $payment->plug == 'Y' ? "true" : "false"
             ]
         )
     ];
 
-    // $vals = [ "item_name" => 'Test', "columnVals" =>  ["status"=>["label"=>"Payment Received"],"date4"=>["date"=>"2024-04-20","time"=>"07:55:54"],"product_category__1"=>["ids"=>[4,5,6]],"text"=>"Jason Wong","phone"=>["phone"=>"0168992528","countryShortName"=>"MY"],"email"=>["email"=>"jason820620@gmail.com","text"=>"jason820620@gmail.com"],"text1"=>"Test","text9"=>"test","text__1"=>"@1234","numbers5"=>2,"numbers3"=>1,"text98"=>"test","label6__1"=>["index"=>3],"checkbox__1"=>["checked"=>"true"]] ];
-    // print_r($vals);
-
     try {
-        // $guzzleClient = new Client(array('headers' => array('Content-Type' => 'application/json', 'Authorization' => $token)));
-        // $responseContent = $guzzleClient->post($apiUrl, ['body' =>  json_encode(['query' => $query, 'variables' => $vals])]);
-        $data = @file_get_contents($apiUrl, false, stream_context_create([
-            'http' => [
-                'method' => 'POST',
-                'header' => $headers,
-                'content' => json_encode(['query' => $query, 'variables' => $vals]),
-            ]
-        ]));
-        $responseContent = json_decode($data, true);
+        $guzzleClient = new Client(array('headers' => array('Content-Type' => 'application/json', 'Authorization' => $token)));
+        $responseContent = $guzzleClient->post($apiUrl, ['body' =>  json_encode(['query' => $query, 'variables' => $vals])]);
+
+
+        // $data = @file_get_contents($apiUrl, false, stream_context_create([
+        //     'http' => [
+        //         'method' => 'POST',
+        //         'header' => $headers,
+        //         'content' => json_encode(['query' => $query, 'variables' => $vals]),
+        //     ]
+        // ]));
+        // $responseContent = json_decode($data, true);
 
 
         // if(array_key_exists('error_message', $responseContent) || $responseContent == null) {
@@ -156,8 +151,25 @@ Route::get('/testHandleMondayMutation/{id}', function (string $order_id) {
         // if (!empty($data->error_message)) {
         //     echo $data->error_message;
         // }
-        // echo $responseContent->getBody();
-        dd($responseContent);
+
+        $data = json_decode($responseContent->getBody()->getContents());
+        if (isset($data->error_message)) {
+            $error = new ApplicationError();
+            $error->application_id = $application->id;
+            $error->error_message = $data->error_message;
+            $error->save();
+        } else {
+            $id = $data->data->create_item->id;
+            DB::table('event_applications')
+                ->updateOrInsert(
+                    [
+                        'id' => $application_id
+                    ],
+                    ['monday_id' => $id]
+                );
+        }
+        // $data = $responseContent->getBody();
+        // echo $data->data->create_item->id;
     } catch (Exception $ex) {
         echo $ex;
     }

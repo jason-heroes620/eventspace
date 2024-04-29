@@ -17,6 +17,9 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\ApplicationApprovedResponse;
 use App\Mail\ApplicationRejectedResponse;
 use Throwable;
+use GuzzleHttp\Client;
+use App\Models\EventCategories;
+use App\Models\ApplicationError;
 
 class EventApplicationsController extends Controller
 {
@@ -83,7 +86,7 @@ class EventApplicationsController extends Controller
 
             $application_categories->save();
         }
-        // send response letter with code
+        $this->handleMondayMutation($id);
 
         return (['id' => $id, 'application_code' => $application_code]);
     }
@@ -200,6 +203,77 @@ class EventApplicationsController extends Controller
             } else {
                 Mail::to($application->email)
                     ->later(now()->addMinute(10), new ApplicationRejectedResponse($event, $application));
+            }
+        } catch (Throwable $ex) {
+            Log::error($ex);
+        }
+    }
+
+    private function handleMondayMutation($application_id)
+    {
+        $application = EventApplications::where('id', $application_id)->first();
+        $application_categories = DB::table('event_applications')
+            ->leftJoin('application_categories', 'application_categories.application_id', '=', 'event_applications.id')
+            ->leftJoin('categories', 'application_categories.category_id', '=', 'categories.id')
+            ->where('event_applications.id', $application_id)
+            ->get(['categories.id']);
+        $categories = [];
+        foreach ($application_categories as $cat) {
+            $id = EventCategories::where('event_id', $application->event_id)->where('category_id', $cat->id)->first(['monday_category_id']);
+            $categories[] = $id->monday_category_id;
+        }
+
+        $event_booths = DB::table("event_applications")
+            ->leftJoin("booths", "event_applications.booth_id", '=', "booths.id")
+            ->where("event_applications.id", $application_id)
+            ->first(["booths.id"]);
+        $booth = EventBooth::where("event_id", $application->event_id)->where('booth_id', $event_booths->id)->first();
+
+        $token = 'eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjM0ODA5NDQzMCwiYWFpIjoxMSwidWlkIjoyNTk3MzUyMSwiaWFkIjoiMjAyNC0wNC0xN1QwNDowODo1MC4wMDBaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MTA0MzIzNTUsInJnbiI6InVzZTEifQ.-HHtAXfVR46gAFuic8jMK5DLB2CMone00q8qZ6ydlGE';
+        $apiUrl = 'https://api.monday.com/v2';
+
+        $query = 'mutation ($item_name:String!, $columnVals: JSON!){ create_item (board_id: 6461771278, group_id: "topics", item_name: $item_name, column_values: $columnVals) { id } }';
+        $vals = [
+            "item_name" => $application->organization,
+            "columnVals" => json_encode(
+                [
+                    "status" => ["label" => "Pending"],
+                    "date4" => ['date' => date('Y-m-d', strtotime($application->created)), 'time' => date('H:i:s', strtotime($application->created))],
+                    "product_category__1" => ["ids" => $categories],
+                    "text" => $application->contact_person,
+                    "phone" => ["phone" => $application->contact_no, "countryShortName" => "MY"],
+                    "email" => ["email" => $application->email, "text" => $application->email],
+                    "text1" => $application->organization,
+                    "text9" => $application->registration,
+                    "text__1" => $application->social_media_account,
+                    "numbers5" => $application->participants,
+                    "numbers3" => $application->booth_qty,
+                    "text98" => $application->description,
+                    "label6__1" => ["index" => $booth->monday_booth_id],
+                    "checkbox__1" => $application->plug == 'Y' ? ["checked" => "true"] : ["checked" => "false"]
+                ]
+            )
+        ];
+
+        try {
+            $guzzleClient = new Client(array('headers' => array('Content-Type' => 'application/json', 'Authorization' => $token)));
+            $responseContent = $guzzleClient->post($apiUrl, ['body' =>  json_encode(['query' => $query, 'variables' => $vals])]);
+
+            $data = json_decode($responseContent->getBody()->getContents());
+            if (isset($data->error_message)) {
+                $error = new ApplicationError();
+                $error->application_id = $application->id;
+                $error->error_message = $data->error_message;
+                $error->save();
+            } else {
+                $id = $data->data->create_item->id;
+                DB::table('event_applications')
+                    ->updateOrInsert(
+                        [
+                            'id' => $application_id
+                        ],
+                        ['monday_id' => $id]
+                    );
             }
         } catch (Throwable $ex) {
             Log::error($ex);

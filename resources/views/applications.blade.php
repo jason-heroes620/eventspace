@@ -32,9 +32,10 @@
         </div>
     </nav>
     <div class="container mt-5">
-        <table class="table table-bordered mb-5">
+        <table class="table table-striped table-condensed mb-5">
             <thead>
                 <tr class="table-success">
+                    <th>No</th>
                     <th scope="col">Shop/Brand Name/Educational Institute Name</th>
                     <th scope="col">Contact Person</th>
                     <th scope="col">Contact No.</th>
@@ -45,9 +46,10 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($applications as $data)
+                @foreach($applications as $index => $data)
                 <tr>
-                    <th scope="row">{{ $data->organization }}</th>
+                    <td>{{ $index + $applications->firstItem() }}</td>
+                    <td>{{ $data->organization }}</td>
                     <td>{{ $data->contact_person }}</td>
                     <td>{{ $data->contact_no }}</td>
                     <td>{{ $data->email }}</td>
@@ -59,14 +61,14 @@
                     @else
                     <td class="text-center bg-danger text-white">{{ $data->status }}</td>
                     @endif
-                    <td><a href="{{ route('application-detail', ['id' => $data->id, 'page' => url()->full()]) }}">View</a></td>
+                    <td><a class="btn btn-sm btn-warning" href="{{ route('application-detail', ['id' => $data->id, 'page' => url()->full()]) }}">view</a></td>
                 </tr>
                 @endforeach
             </tbody>
         </table>
         <div class="container row col-6 col-md-3 col-lg-2">
             <div class="bg-info">
-                <span class="text-black">N = New,</span>
+                <span class="text-black">N = New</span>
             </div>
             <div class="bg-success">
                 <span class="text-white">A = Approved</span>

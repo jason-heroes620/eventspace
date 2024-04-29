@@ -200,13 +200,13 @@ class EventPaymentController extends Controller
                 ],
                 ['status' => $payment_status]
             );
-        $domain = "https://event-payment.heroes.my/paymentSummary/" . $OrderNumber . "/status/" . $payment_status;
+        $domain = "https://event-application-test.heroes.my/paymentSummary/" . $OrderNumber . "/status/" . $payment_status;
 
         if ($TxnStatus == 0 && !$this->checkIfPaymentIdExists($PaymentID)) {
             try {
                 $this->handlePaymentEmails($OrderNumber);
                 $this->handlePaymentNotification($OrderNumber);
-                $this->handleMondayMutation($OrderNumber);
+                // $this->handleMondayMutation($OrderNumber);
 
                 $payment_log = new PaymentLogs;
                 $payment_log->payment_id = $PaymentID;
@@ -281,71 +281,71 @@ class EventPaymentController extends Controller
         }
     }
 
-    private function handleMondayMutation($order_id)
-    {
-        $payment = EventPayments::where('id', $order_id)->first();
-        $application = EventApplications::where('id', $payment->application_id)->first();
-        $application_categories = DB::table('event_applications')
-            ->leftJoin('application_categories', 'application_categories.application_id', '=', 'event_applications.id')
-            ->leftJoin('categories', 'application_categories.category_id', '=', 'categories.id')
-            ->where('event_applications.id', $payment->application_id)
-            ->get(['categories.id']);
-        $categories = [];
-        foreach ($application_categories as $cat) {
-            $id = EventCategories::where('event_id', $application->event_id)->where('category_id', $cat->id)->first(['monday_category_id']);
-            $categories[] = $id->monday_category_id;
-        }
+    // private function handleMondayMutation($order_id)
+    // {
+    //     $payment = EventPayments::where('id', $order_id)->first();
+    //     $application = EventApplications::where('id', $payment->application_id)->first();
+    //     $application_categories = DB::table('event_applications')
+    //         ->leftJoin('application_categories', 'application_categories.application_id', '=', 'event_applications.id')
+    //         ->leftJoin('categories', 'application_categories.category_id', '=', 'categories.id')
+    //         ->where('event_applications.id', $payment->application_id)
+    //         ->get(['categories.id']);
+    //     $categories = [];
+    //     foreach ($application_categories as $cat) {
+    //         $id = EventCategories::where('event_id', $application->event_id)->where('category_id', $cat->id)->first(['monday_category_id']);
+    //         $categories[] = $id->monday_category_id;
+    //     }
 
-        $event_booths = DB::table("event_payments")
-            ->leftJoin('event_applications', 'event_applications.id', '=', 'event_payments.application_id')
-            ->leftJoin("booths", "event_applications.booth_id", '=', "booths.id")
-            ->where("event_payments.id", $order_id)
-            ->first(["booths.id"]);
-        $booth = EventBooth::where("event_id", $application->event_id)->where('booth_id', $event_booths->id)->first();
+    //     $event_booths = DB::table("event_payments")
+    //         ->leftJoin('event_applications', 'event_applications.id', '=', 'event_payments.application_id')
+    //         ->leftJoin("booths", "event_applications.booth_id", '=', "booths.id")
+    //         ->where("event_payments.id", $order_id)
+    //         ->first(["booths.id"]);
+    //     $booth = EventBooth::where("event_id", $application->event_id)->where('booth_id', $event_booths->id)->first();
 
-        $token = 'eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjM0ODA5NDQzMCwiYWFpIjoxMSwidWlkIjoyNTk3MzUyMSwiaWFkIjoiMjAyNC0wNC0xN1QwNDowODo1MC4wMDBaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MTA0MzIzNTUsInJnbiI6InVzZTEifQ.-HHtAXfVR46gAFuic8jMK5DLB2CMone00q8qZ6ydlGE';
-        $apiUrl = 'https://api.monday.com/v2';
+    //     $token = 'eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjM0ODA5NDQzMCwiYWFpIjoxMSwidWlkIjoyNTk3MzUyMSwiaWFkIjoiMjAyNC0wNC0xN1QwNDowODo1MC4wMDBaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MTA0MzIzNTUsInJnbiI6InVzZTEifQ.-HHtAXfVR46gAFuic8jMK5DLB2CMone00q8qZ6ydlGE';
+    //     $apiUrl = 'https://api.monday.com/v2';
 
-        $query = 'mutation ($item_name:String!, $columnVals: JSON!){ create_item (board_id: 6461771278, group_id: "topics", item_name: $item_name, column_values: $columnVals) { id } }';
-        $vals = [
-            "item_name" => $application->organization,
-            "columnVals" => json_encode(
-                [
-                    "status" => ["label" => "Payment Received"],
-                    "date4" => ['date' => date('Y-m-d', strtotime($payment->created)), 'time' => date('H:i:s', strtotime($payment->created))],
-                    "product_category__1" => ["ids" => $categories],
-                    "text" => $application->contact_person,
-                    "phone" => ["phone" => $application->contact_no, "countryShortName" => "MY"],
-                    "email" => ["email" => $application->email, "text" => $application->email],
-                    "text1" => $application->organization,
-                    "text9" => $application->registration,
-                    "text__1" => $application->social_media_account,
-                    "numbers5" => $application->participants,
-                    "numbers3" => $application->booth_qty,
-                    "text98" => $application->description,
-                    "label6__1" => ["index" => $booth->monday_booth_id],
-                    "checkbox__1" => $application->plug == 'Y' ? ["checked" => "true"] : ["checked" => "false"]
-                ]
-            )
-        ];
+    //     $query = 'mutation ($item_name:String!, $columnVals: JSON!){ create_item (board_id: 6461771278, group_id: "topics", item_name: $item_name, column_values: $columnVals) { id } }';
+    //     $vals = [
+    //         "item_name" => $application->organization,
+    //         "columnVals" => json_encode(
+    //             [
+    //                 "status" => ["label" => "Pending"],
+    //                 "date4" => ['date' => date('Y-m-d', strtotime($payment->created)), 'time' => date('H:i:s', strtotime($payment->created))],
+    //                 "product_category__1" => ["ids" => $categories],
+    //                 "text" => $application->contact_person,
+    //                 "phone" => ["phone" => $application->contact_no, "countryShortName" => "MY"],
+    //                 "email" => ["email" => $application->email, "text" => $application->email],
+    //                 "text1" => $application->organization,
+    //                 "text9" => $application->registration,
+    //                 "text__1" => $application->social_media_account,
+    //                 "numbers5" => $application->participants,
+    //                 "numbers3" => $application->booth_qty,
+    //                 "text98" => $application->description,
+    //                 "label6__1" => ["index" => $booth->monday_booth_id],
+    //                 "checkbox__1" => $application->plug == 'Y' ? ["checked" => "true"] : ["checked" => "false"]
+    //             ]
+    //         )
+    //     ];
 
-        try {
-            $guzzleClient = new Client(array('headers' => array('Content-Type' => 'application/json', 'Authorization' => $token)));
-            $responseContent = $guzzleClient->post($apiUrl, ['body' =>  json_encode(['query' => $query, 'variables' => $vals])]);
+    //     try {
+    //         $guzzleClient = new Client(array('headers' => array('Content-Type' => 'application/json', 'Authorization' => $token)));
+    //         $responseContent = $guzzleClient->post($apiUrl, ['body' =>  json_encode(['query' => $query, 'variables' => $vals])]);
 
-            $data = json_decode($responseContent->getBody());
-            if (!empty($data->error_message)) {
-                $error = new PaymentEntryError();
-                $error->payment_id = $order_id;
-                $error->error = $data->error_message;
-                $error->save();
-            }
-        } catch (Throwable $ex) {
-            $error = new PaymentEntryError();
+    //         $data = json_decode($responseContent->getBody());
+    //         if (!empty($data->error_message)) {
+    //             $error = new PaymentEntryError();
+    //             $error->payment_id = $order_id;
+    //             $error->error = $data->error_message;
+    //             $error->save();
+    //         }
+    //     } catch (Throwable $ex) {
+    //         $error = new PaymentEntryError();
 
-            $error->payment_id = $order_id;
-            $error->error = $ex;
-            $error->save();
-        }
-    }
+    //         $error->payment_id = $order_id;
+    //         $error->error = $ex;
+    //         $error->save();
+    //     }
+    // }
 }
