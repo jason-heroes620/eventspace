@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Models\Booths;
 use App\Models\EventApplications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -21,6 +22,7 @@ class PaymentReceived extends Mailable
     public function __construct(
         protected Events $event,
         protected EventApplications $application,
+        protected Booths $booth,
     ) {
     }
 
@@ -47,6 +49,8 @@ class PaymentReceived extends Mailable
                 'event_date' => $this->event->event_date,
                 'event_time' => $this->event->event_time,
                 'event_location' => $this->event->event_location,
+                'booth' => $this->booth->booth_type,
+                'booth_qty' => $this->application->booth_qty
             ]
         );
     }

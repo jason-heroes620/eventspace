@@ -3,12 +3,13 @@
 use Illuminate\Support\Facades\Route;
 use App\Mail\PaymentReceived;
 use App\Mail\PaymentNotification;
+use App\Mail\ApplicationReceived;
 
+use App\Models\Booths;
 use App\Models\Events;
 use App\Models\EventCategories;
 use App\Models\EventPayments;
 use App\Models\EventBooth;
-use App\Models\PaymentEntryError;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\EventApplicationsController;
@@ -18,6 +19,7 @@ use Illuminate\Support\Facades\Mail;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Log;
 use App\Models\ApplicationError;
+use App\Models\ResponseEmailList;
 
 Route::get('/', function () {
     return view('login');
@@ -40,6 +42,29 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/applications/{id}', [EventApplicationsController::class, 'updateStatus'])->name('updateStatus');
 });
 
+Route::get('/test-mail', function () {
+
+    // $event = App\Models\Events::find(1);
+    // $payment = App\Models\EventPayments::find(8);
+
+    // return (new PaymentReceived($event, $payment))->render();
+
+    $application_id = 47;
+
+    $application = EventApplications::where('id', $application_id)
+        ->first();
+    $event = Events::where('id', $application->event_id)->first()
+        ->first();
+    $email_list = ResponseEmailList::where('response_email_type', 'TE')->get();
+    echo config("custom.payment_redirect_host");
+
+    try {
+        Mail::to($email_list)
+            ->send(new ApplicationReceived($event, $application));
+    } catch (Throwable $ex) {
+        Log::error($ex);
+    }
+});
 
 Route::get('/send-mail', function () {
 
@@ -51,11 +76,18 @@ Route::get('/send-mail', function () {
     $order_id = 16;
     $payment_info = EventPayments::where('id', $order_id)->first();
 
-    $event = Events::where('id', $payment_info->event_id)
+    $application = EventApplications::where('id', $payment_info->application_id)
+        ->first();
+    $event = Events::where('id', $application->event_id)->first();
+    $booth = Booths::where('id', $application->booth_id)
         ->first();
 
-    Mail::to($payment_info->email)
-        ->send(new PaymentReceived($event, $payment_info));
+    try {
+        Mail::to($application->email)
+            ->send(new PaymentReceived($event, $application, $booth));
+    } catch (Throwable $ex) {
+        Log::error($ex);
+    }
 });
 
 Route::get('/notification-mail', function () {
@@ -68,16 +100,17 @@ Route::get('/notification-mail', function () {
     $order_id = 16;
     $payment_info = EventPayments::where('id', $order_id)->first();
 
-    $event = Events::where('id', $payment_info->event_id)
+    $application = EventApplications::where('id', $payment_info->application_id)
         ->first();
+    $event = Events::where('id', $application->event_id)->first();
+
 
     try {
-        Mail::to('abc@eff.ccdvb')
-            ->send(new PaymentNotification($event, $payment_info));
+        Mail::to('purchases@heroes.my')
+            ->send(new PaymentNotification($event, $application, $payment_info));
     } catch (Throwable $ex) {
         Log::error($ex);
     }
-    echo 'Test';
 });
 
 Route::get('/testHandleMondayMutation/{id}', function (string $application_id) {
@@ -98,17 +131,20 @@ Route::get('/testHandleMondayMutation/{id}', function (string $application_id) {
         ->where("event_applications.id", $application_id)
         ->first(["booths.id"]);
     $booth = EventBooth::where("event_id", $application->event_id)->where('booth_id', $event_booths->id)->first();
+    $event = Events::where('id', $application->event_id)->first();
 
     $token = 'eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjM0ODA5NDQzMCwiYWFpIjoxMSwidWlkIjoyNTk3MzUyMSwiaWFkIjoiMjAyNC0wNC0xN1QwNDowODo1MC4wMDBaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MTA0MzIzNTUsInJnbiI6InVzZTEifQ.-HHtAXfVR46gAFuic8jMK5DLB2CMone00q8qZ6ydlGE';
     $apiUrl = 'https://api.monday.com/v2';
 
     $query = 'mutation ($item_name:String!, $columnVals: JSON!){ create_item (board_id: 6461771278, group_id: "topics", item_name: $item_name, column_values: $columnVals) { id } }';
+    $date = new DateTime($application->created);
+    $date->setTimezone(new DateTimeZone('UTC'));
     $vals = [
         "item_name" => $application->organization,
         "columnVals" => json_encode(
             [
                 "status" => ["label" => "Pending"],
-                "date4" => ['date' => date('Y-m-d', strtotime($application->created)), 'time' => date('H:i:s', strtotime($application->created))],
+                "date4" => ['date' => $date->format('Y-m-d'), 'time' => $date->format('H:i:s')],
                 "product_category__1" => ["ids" => $categories],
                 "text" => $application->contact_person,
                 "phone" => ["phone" => $application->contact_no, "countryShortName" => "MY"],
@@ -116,6 +152,9 @@ Route::get('/testHandleMondayMutation/{id}', function (string $application_id) {
                 "text1" => $application->organization,
                 "text9" => $application->registration,
                 "text__1" => $application->social_media_account,
+                "text3__1" => $event->event_location,
+                "event_date__1" => $event->event_date,
+                "event_time__1" => $event->event_time,
                 "numbers5" => $application->participants,
                 "numbers3" => $application->booth_qty,
                 "text98" => $application->description,

@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use App\Models\EventPayments;
-use App\Models\PaymentCategories;
+use App\Models\ResponseEmailList;
 use App\Models\PaymentDetail;
 use App\Models\PaymentHistory;
 use App\Models\Events;
@@ -200,7 +200,7 @@ class EventPaymentController extends Controller
                 ],
                 ['status' => $payment_status]
             );
-        $domain = "https://event-application-test.heroes.my/paymentSummary/" . $OrderNumber . "/status/" . $payment_status;
+        $domain = "https://" . config("custom.payment_redirect_host") . "/paymentSummary/" . $OrderNumber . "/status/" . $payment_status;
 
         if ($TxnStatus == 0 && !$this->checkIfPaymentIdExists($PaymentID)) {
             try {
@@ -251,15 +251,18 @@ class EventPaymentController extends Controller
 
     private function handlePaymentEmails($order_id)
     {
+        // to vendors
         $payment_info = EventPayments::where('id', $order_id)->first();
 
         $application = EventApplications::where('id', $payment_info->application_id)
             ->first();
         $event = Events::where('id', $application->event_id)->first();
+        $booth = Booths::where('id', $application->booth_id)
+            ->first();
 
         try {
             Mail::to($application->email)
-                ->send(new PaymentReceived($event, $application));
+                ->later(now()->addMinutes(5), new PaymentReceived($event, $application, $booth));
         } catch (Throwable $ex) {
             Log::error($ex);
         }
@@ -272,10 +275,10 @@ class EventPaymentController extends Controller
         $application = EventApplications::where('id', $payment_info->application_id)
             ->first();
         $event = Events::where('id', $application->event_id)->first();
-
+        $email_list = ResponseEmailList::where('response_email_type', 'PR')->get();
         try {
-            Mail::to('purchases@heroes.my')
-                ->send(new PaymentNotification($event, $application, $payment_info));
+            Mail::to($email_list)
+                ->later(now()->addMinutes(5), new PaymentNotification($event, $application, $payment_info));
         } catch (Throwable $ex) {
             Log::error($ex);
         }

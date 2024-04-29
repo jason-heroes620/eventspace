@@ -2,6 +2,8 @@
 
 namespace App\Mail;
 
+use App\Models\EventApplications;
+use App\Models\Events;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -9,15 +11,17 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class ApplicationSuccessfulResponse extends Mailable
+class ApplicationReceived extends Mailable
 {
     use Queueable, SerializesModels;
 
     /**
      * Create a new message instance.
      */
-    public function __construct()
-    {
+    public function __construct(
+        protected Events $event,
+        protected EventApplications $application,
+    ) {
         //
     }
 
@@ -27,7 +31,7 @@ class ApplicationSuccessfulResponse extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Application Successful Response',
+            subject: "New Application Received (" . $this->event->event_name . ")",
         );
     }
 
@@ -37,7 +41,15 @@ class ApplicationSuccessfulResponse extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'view.name',
+            view: 'mails.application-received',
+            with: [
+                'event_name' => $this->event->event_name,
+                'organization' => $this->application->organization,
+                'contact_person' => $this->application->contact_person,
+                'contact_no' => $this->application->contact_no,
+                'email' => $this->application->email,
+                'created' => $this->application->created
+            ]
         );
     }
 

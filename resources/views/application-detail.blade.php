@@ -123,6 +123,30 @@
                 </div>
             </div>
         </div>
+
+        @if ($payment)
+        <hr>
+        <h5>Payment Information</h5>
+        <div class="container row">
+            <div class="row py-2">
+                <span class="col-12 col-md-4"><strong>Payment Date</strong></span>
+                <span class="col-12 col-md-8 py-2 border">{{ date('d/m/Y H:i A', strtotime($payment_detail->created)) }}</span>
+            </div>
+            <div class="row py-2">
+                <span class="col-12 col-md-4"><strong>Payment Total (RM)</strong></span>
+                <span class="col-12 col-md-8 py-2 border">{{ $payment->payment_total }}</span>
+            </div>
+            <div class="row py-2">
+                <span class="col-12 col-md-4"><strong>Payment ID</strong></span>
+                <span class="col-12 col-md-8 py-2 border">{{ $payment_detail->payment_id }}</span>
+            </div>
+            <div class="row py-2">
+                <span class="col-12 col-md-4"><strong>Payment Method</strong></span>
+                <span class="col-12 col-md-8 py-2 border">{{ $payment_detail->payment_method }}</span>
+            </div>
+        </div>
+        <hr>
+        @endif
         <div class="container bg-light py-2">
             <div class="col-12 btn-group justify-right p-2 justify-content-end gap-4">
                 <div>

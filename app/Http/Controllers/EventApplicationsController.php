@@ -16,10 +16,15 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ApplicationApprovedResponse;
 use App\Mail\ApplicationRejectedResponse;
+use App\Mail\ApplicationReceived;
 use Throwable;
 use GuzzleHttp\Client;
 use App\Models\EventCategories;
 use App\Models\ApplicationError;
+use App\Models\PaymentDetail;
+use App\Models\ResponseEmailList;
+use DateTime;
+use DateTimeZone;
 
 class EventApplicationsController extends Controller
 {
@@ -33,9 +38,16 @@ class EventApplicationsController extends Controller
             $booth_price = number_format((float)($event_booth->price), 2, '.', '');
             $total = number_format((float)((int)$application[0]->booth_qty * (int)$application[0]->no_of_days * (int)$event_booth->price), 2, '.', '');
 
-            return view('application-detail', ['application' => $application[0], 'categories' => $categories, 'booth' => $booth, 'booth_price' => $booth_price, 'total' => $total, 'page' => $application[1]]);
+            return view('application-detail', ['application' => $application[0], 'categories' => $categories, 'booth' => $booth, 'booth_price' => $booth_price, 'total' => $total, 'payment' => $application[2], 'payment_detail' => $application[3], 'page' => $application[1]]);
         } else {
-            $applications = EventApplications::orderBy('created', 'DESC')->paginate(10);
+            // $applications = EventApplications::orderBy('created', 'DESC')->paginate(10);
+            $applications = DB::table('event_applications')
+                ->select('event_applications.id', 'event_applications.organization', 'event_applications.contact_person', 'event_applications.contact_no', 'event_applications.email', 'event_applications.application_code', 'event_applications.status', 'event_applications.created', 'payment_status.status as payment_status')
+                ->leftJoin('event_payments', 'event_applications.id', '=', 'event_payments.application_id')
+                ->leftJoin('payment_status', 'payment_status.id', '=', 'event_payments.status')
+                ->orderBy('event_applications.created', 'DESC')
+                ->paginate(10);
+
             return view('applications', compact('applications'));
         }
     }
@@ -86,7 +98,14 @@ class EventApplicationsController extends Controller
 
             $application_categories->save();
         }
-        $this->handleMondayMutation($id);
+
+        try {
+            $this->sendApplicationReceivedEmail($id);
+            $this->handleMondayMutation($id);
+        } catch (Throwable $ex) {
+            Log::error($ex);
+        }
+
 
         return (['id' => $id, 'application_code' => $application_code]);
     }
@@ -94,12 +113,17 @@ class EventApplicationsController extends Controller
     private function getApplication($id, $page = null)
     {
         $result = EventApplications::where('id', $id)->first();
+        $payment = EventPayments::where('application_id', $id)->first();
+
+        if ($payment) {
+            $detail = PaymentDetail::where('payment_id', $payment->id)->first();
+        }
         $url = parse_url($page);
 
         if (isset($url["query"])) {
             $query = $url["query"];
             $pages = explode('=', $query);
-            return [$result, $pages[1]];
+            return [$result, $pages[1], $payment, $detail];
         }
         return [$result, 1];
     }
@@ -176,7 +200,7 @@ class EventApplicationsController extends Controller
                 $payment->save();
 
                 $id = $payment->id;
-                $payment_link = "https://event-payment.heroes.my/payment/" . $id . "/code/" . $application->application_code;
+                $payment_link = "https://" . config('custom.payment_redirect_host') . "/payment/" . $id . "/code/" . $application->application_code;
                 // send successful email
                 $this->sendNotificationEmail($status->status, $event, $application, $payment_link);
             }
@@ -194,12 +218,27 @@ class EventApplicationsController extends Controller
         }
     }
 
+    private function sendApplicationReceivedEmail($application_id)
+    {
+        $application = EventApplications::where('id', $application_id)
+            ->first();
+        $event = Events::where('id', $application->event_id)->first()
+            ->first();
+        $email_list = ResponseEmailList::where('response_email_type', 'NA')->get();
+        try {
+            Mail::to($email_list)
+                ->later(now()->addMinutes(5), new ApplicationReceived($event, $application));
+        } catch (Throwable $ex) {
+            Log::error($ex);
+        }
+    }
+
     private function sendNotificationEmail($type, $event, $application, $payment_link)
     {
         try {
             if ($type === 'A') {
                 Mail::to($application->email)
-                    ->send(new ApplicationApprovedResponse($event, $application, $payment_link));
+                    ->later(now()->addMinutes(5), new ApplicationApprovedResponse($event, $application, $payment_link));
             } else {
                 Mail::to($application->email)
                     ->later(now()->addMinute(10), new ApplicationRejectedResponse($event, $application));
@@ -228,17 +267,20 @@ class EventApplicationsController extends Controller
             ->where("event_applications.id", $application_id)
             ->first(["booths.id"]);
         $booth = EventBooth::where("event_id", $application->event_id)->where('booth_id', $event_booths->id)->first();
+        $event = Events::where('id', $application->event_id)->first();
 
         $token = 'eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjM0ODA5NDQzMCwiYWFpIjoxMSwidWlkIjoyNTk3MzUyMSwiaWFkIjoiMjAyNC0wNC0xN1QwNDowODo1MC4wMDBaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MTA0MzIzNTUsInJnbiI6InVzZTEifQ.-HHtAXfVR46gAFuic8jMK5DLB2CMone00q8qZ6ydlGE';
         $apiUrl = 'https://api.monday.com/v2';
 
         $query = 'mutation ($item_name:String!, $columnVals: JSON!){ create_item (board_id: 6461771278, group_id: "topics", item_name: $item_name, column_values: $columnVals) { id } }';
+        $date = new DateTime($application->created);
+        $date->setTimezone(new DateTimeZone('UTC'));
         $vals = [
             "item_name" => $application->organization,
             "columnVals" => json_encode(
                 [
                     "status" => ["label" => "Pending"],
-                    "date4" => ['date' => date('Y-m-d', strtotime($application->created)), 'time' => date('H:i:s', strtotime($application->created))],
+                    "date4" => ['date' => $date->format('Y-m-d'), 'time' => $date->format('H:i:s')],
                     "product_category__1" => ["ids" => $categories],
                     "text" => $application->contact_person,
                     "phone" => ["phone" => $application->contact_no, "countryShortName" => "MY"],
@@ -246,6 +288,9 @@ class EventApplicationsController extends Controller
                     "text1" => $application->organization,
                     "text9" => $application->registration,
                     "text__1" => $application->social_media_account,
+                    "text3__1" => $event->event_location,
+                    "event_date__1" => $event->event_date,
+                    "event_time__1" => $event->event_time,
                     "numbers5" => $application->participants,
                     "numbers3" => $application->booth_qty,
                     "text98" => $application->description,

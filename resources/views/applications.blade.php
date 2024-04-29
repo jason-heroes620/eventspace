@@ -41,19 +41,22 @@
                     <th scope="col">Contact No.</th>
                     <th scope="col">Email</th>
                     <th scope="col">Date of Submission</th>
+                    <th scope="col">Code</th>
                     <th scope="col">Status</th>
+                    <th scope="col">Payment</th>
                     <th></th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="small">
                 @foreach($applications as $index => $data)
-                <tr>
+                <tr class="align-middle">
                     <td>{{ $index + $applications->firstItem() }}</td>
                     <td>{{ $data->organization }}</td>
                     <td>{{ $data->contact_person }}</td>
                     <td>{{ $data->contact_no }}</td>
                     <td>{{ $data->email }}</td>
                     <td>{{ date('d/m/Y H:i A', strtotime($data->created)) }}</td>
+                    <td>{{ $data->application_code }}</td>
                     @if($data->status == 'N')
                     <td class="text-center bg-info text-black">{{ $data->status }}</td>
                     @elseif ($data->status == 'A')
@@ -61,6 +64,7 @@
                     @else
                     <td class="text-center bg-danger text-white">{{ $data->status }}</td>
                     @endif
+                    <td class="text-center">{{ $data->payment_status }}</td>
                     <td><a class="btn btn-sm btn-warning" href="{{ route('application-detail', ['id' => $data->id, 'page' => url()->full()]) }}">view</a></td>
                 </tr>
                 @endforeach
