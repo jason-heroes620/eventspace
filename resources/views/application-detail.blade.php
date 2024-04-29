@@ -128,22 +128,30 @@
         <hr>
         <h5>Payment Information</h5>
         <div class="container row">
+
             <div class="row py-2">
-                <span class="col-12 col-md-4"><strong>Payment Date</strong></span>
-                <span class="col-12 col-md-8 py-2 border">{{ date('d/m/Y H:i A', strtotime($payment_detail->created)) }}</span>
+                <span class="col-12 col-md-4"><strong>Payment ID</strong></span>
+                <span class="col-12 col-md-8 py-2 border">{{ $payment->id }}</span>
             </div>
+            @if($payment_detail)
             <div class="row py-2">
                 <span class="col-12 col-md-4"><strong>Payment Total (RM)</strong></span>
                 <span class="col-12 col-md-8 py-2 border">{{ $payment->payment_total }}</span>
             </div>
             <div class="row py-2">
-                <span class="col-12 col-md-4"><strong>Payment ID</strong></span>
-                <span class="col-12 col-md-8 py-2 border">{{ $payment_detail->payment_id }}</span>
+                <span class="col-12 col-md-4"><strong>Payment Date</strong></span>
+                <span class="col-12 col-md-8 py-2 border">{{ date('d/m/Y H:i A', strtotime($payment_detail->created)) }}</span>
             </div>
             <div class="row py-2">
                 <span class="col-12 col-md-4"><strong>Payment Method</strong></span>
                 <span class="col-12 col-md-8 py-2 border">{{ $payment_detail->payment_method }}</span>
             </div>
+            @else
+            <div class="row py-2">
+                <span class="col-12 col-md-4"><strong>Total (RM)</strong></span>
+                <span class="col-12 col-md-8 py-2 border">{{ $payment->payment_total }}</span>
+            </div>
+            @endif
         </div>
         <hr>
         @endif

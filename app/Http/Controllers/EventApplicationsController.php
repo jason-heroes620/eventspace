@@ -115,7 +115,7 @@ class EventApplicationsController extends Controller
         $result = EventApplications::where('id', $id)->first();
         $payment = EventPayments::where('application_id', $id)->first();
         $detail = array();
-        if ($payment) {
+        if ($payment && $payment->status == '2') {
             $detail = PaymentDetail::where('payment_id', $payment->id)->first();
         }
         $url = parse_url($page);
