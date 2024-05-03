@@ -41,6 +41,6 @@ class EventBoothController extends Controller
             ->where('booths.status', '=', '0')
             ->orderBy('orders');
 
-        return $query->first(['price']);
+        return $query->first(['price', 'display_price']);
     }
 }
