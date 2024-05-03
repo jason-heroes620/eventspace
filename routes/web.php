@@ -13,6 +13,8 @@ use App\Models\EventBooth;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\EventApplicationsController;
+use App\Http\Controllers\ProductsController;
+use App\Http\Controllers\VendorsController;
 use App\Models\EventApplications;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -31,11 +33,21 @@ Route::group(['middleware' => 'guest'], function () {
 
     Route::get('/login', [AuthController::class, 'login'])->name('login');
     Route::post('/login', [AuthController::class, 'loginPost'])->name('login');
+
+    Route::get('vendors/', [VendorsController::class, 'index'])->name('vendors');
+    Route::get('vendor/{id}', [VendorsController::class, 'index'])->name('vendor');
+
+    Route::get('products', [ProductsController::class, 'index'])->name('products');
+    Route::get('products/{id}', [ProductsController::class, 'index'])->name('product-detail');
+    Route::get('products/event/{event}', [ProductsController::class, 'index'])->name('products-event');
+    Route::get('products/event/{event}/vendor/{vendor}', [ProductsController::class, 'index'])->name('products-event-vendor');
+    Route::get('products/vendor/{vendor}', [ProductsController::class, 'index'])->name('products-vendor');
 });
 
 Route::group(['middleware' => 'auth'], function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::get('/applications', [EventApplicationsController::class, 'index'])->name('applications');
+    Route::get('/applications/event/{eventId}', [EventApplicationsController::class, 'index'])->name('event-applications');
     Route::get('/applications/{id}', [EventApplicationsController::class, 'index'])->name('application-detail');
     Route::delete('/logout', [AuthController::class, 'logout'])->name('logout');
 
@@ -159,7 +171,7 @@ Route::get('/testHandleMondayMutation/{id}', function (string $application_id) {
                 "numbers3" => $application->booth_qty,
                 "text98" => $application->description,
                 "label6__1" => ["index" => $booth->monday_booth_id],
-                "checkbox__1" => $application->plug == 'Y' ? ["checked" => "true"] : ["checked" => "false"]
+                "checkbox__1" => $application->plug == 'Y' ? ["label" => "Yes"] : ["label" => "No"]
             ]
         )
     ];

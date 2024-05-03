@@ -38,17 +38,30 @@ class EventApplicationsController extends Controller
             $booth_price = number_format((float)($event_booth->price), 2, '.', '');
             $total = number_format((float)((int)$application[0]->booth_qty * (int)$application[0]->no_of_days * (int)$event_booth->price), 2, '.', '');
 
-            return view('application-detail', ['application' => $application[0], 'categories' => $categories, 'booth' => $booth, 'booth_price' => $booth_price, 'total' => $total, 'payment' => $application[2], 'payment_detail' => $application[3], 'page' => $application[1]]);
+            return view('application-detail', ['application' => $application[0], 'categories' => $categories, 'booth' => $booth, 'booth_price' => $event_booth->display_price, 'total' => $total, 'payment' => $application[2], 'payment_detail' => $application[3], 'page' => $application[1], 'eventId' => $req->event]);
         } else {
-            // $applications = EventApplications::orderBy('created', 'DESC')->paginate(10);
-            $applications = DB::table('event_applications')
-                ->select('event_applications.id', 'event_applications.organization', 'event_applications.contact_person', 'event_applications.contact_no', 'event_applications.email', 'event_applications.application_code', 'event_applications.status', 'event_applications.created', 'payment_status.status as payment_status')
-                ->leftJoin('event_payments', 'event_applications.id', '=', 'event_payments.application_id')
-                ->leftJoin('payment_status', 'payment_status.id', '=', 'event_payments.status')
-                ->orderBy('event_applications.created', 'DESC')
-                ->paginate(10);
+            $events = Events::where('status', 0)->get();
+            $event = '';
+            if (isset($req->eventId)) {
+                $applications = DB::table('event_applications')
+                    ->select('event_applications.id', 'event_applications.organization', 'event_applications.contact_person', 'event_applications.contact_no', 'event_applications.email', 'event_applications.application_code', 'event_applications.status', 'event_applications.created', 'payment_status.status as payment_status')
+                    ->leftJoin('event_payments', 'event_applications.id', '=', 'event_payments.application_id')
+                    ->leftJoin('payment_status', 'payment_status.id', '=', 'event_payments.status')
+                    ->where("event_applications.event_id", $req->eventId)
+                    ->orderBy('event_applications.created', 'DESC')
+                    ->paginate(10);
 
-            return view('applications', compact('applications'));
+                $event = $req->eventId;
+            } else {
+                // $applications = EventApplications::orderBy('created', 'DESC')->paginate(10);
+                $applications = DB::table('event_applications')
+                    ->select('event_applications.id', 'event_applications.organization', 'event_applications.contact_person', 'event_applications.contact_no', 'event_applications.email', 'event_applications.application_code', 'event_applications.status', 'event_applications.created', 'payment_status.status as payment_status')
+                    ->leftJoin('event_payments', 'event_applications.id', '=', 'event_payments.application_id')
+                    ->leftJoin('payment_status', 'payment_status.id', '=', 'event_payments.status')
+                    ->orderBy('event_applications.created', 'DESC')
+                    ->paginate(10);
+            }
+            return view('applications', compact('applications', 'events'))->with('eventId', $event);
         }
     }
 
@@ -116,14 +129,11 @@ class EventApplicationsController extends Controller
         $payment = EventPayments::where('application_id', $id)->first();
         $detail = array();
         if ($payment && $payment->status == '2') {
-            $detail = PaymentDetail::where('payment_id', $payment->id)->first();
+            $detail = PaymentDetail::where('payment_id', $payment->id)->orderBy('created', 'DESC')->first();
         }
-        $url = parse_url($page);
 
-        if (isset($url["query"])) {
-            $query = $url["query"];
-            $pages = explode('=', $query);
-            return [$result, $pages[1], $payment, $detail];
+        if ($page) {
+            return [$result, $page, $payment, $detail];
         }
         return [$result, 1, $payment, $detail];
     }
@@ -209,8 +219,6 @@ class EventApplicationsController extends Controller
                 // send rejected email
                 $this->sendNotificationEmail($status->status, $event, $application, '');
             }
-
-
             return $status->message;
         } catch (Exception $ex) {
             Log::error($ex);
@@ -227,7 +235,7 @@ class EventApplicationsController extends Controller
         $email_list = ResponseEmailList::where('response_email_type', 'NA')->get();
         try {
             Mail::to($email_list)
-                ->later(now()->addMinutes(5), new ApplicationReceived($event, $application));
+                ->later(now()->addMinutes(2), new ApplicationReceived($event, $application));
         } catch (Throwable $ex) {
             Log::error($ex);
         }
@@ -295,7 +303,7 @@ class EventApplicationsController extends Controller
                     "numbers3" => $application->booth_qty,
                     "text98" => $application->description,
                     "label6__1" => ["index" => $booth->monday_booth_id],
-                    "checkbox__1" => $application->plug == 'Y' ? ["checked" => "true"] : ["checked" => "false"]
+                    "checkbox__1" => $application->plug == 'Y' ? ["label" => "Yes"] : ["label" => "No"]
                 ]
             )
         ];

@@ -37,10 +37,17 @@
         </div>
     </nav>
     <div class="container mt-4">
+        @if($eventId)
+        <div>
+            <a href="{{ route('event-applications', ['page' => $page, 'eventId' => $eventId]) }}" class="btn btn-primary px-4">
+                < Back</a>
+        </div>
+        @else
         <div>
             <a href="{{ route('applications', ['page' => $page]) }}" class="btn btn-primary px-4">
                 < Back</a>
         </div>
+        @endif
 
         <div class="p-4">
             <section id="loading">
@@ -97,7 +104,7 @@
                 </div>
                 <div class="row py-2">
                     <span class="col-12 col-md-4"><strong>Booth</strong></span>
-                    <span class="col-12 col-md-8 py-2 border">{{ $booth->booth_type }} ( RM{{ $booth_price }} )</span>
+                    <span class="col-12 col-md-8 py-2 border">{{ $booth->booth_type }} ( {{ $booth_price }} )</span>
                 </div>
                 <div class="row py-2">
                     <span class="col-12 col-md-4"><strong>No. of Booth</strong></span>
@@ -230,9 +237,9 @@
                         });
                     }
                     hideLoading();
-                    // setTimeout(function() {
-                    //     location.reload()
-                    // }, 2000)
+                    setTimeout(function() {
+                        location.reload()
+                    }, 2000)
                 },
                 error: function(xhr, status, error) {}
             });
