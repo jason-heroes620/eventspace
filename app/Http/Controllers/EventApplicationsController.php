@@ -303,7 +303,7 @@ class EventApplicationsController extends Controller
                     "numbers3" => $application->booth_qty,
                     "text98" => $application->description,
                     "label6__1" => ["index" => $booth->monday_booth_id],
-                    "dropdown8__1" => $application->plug == 'Y' ? ["label" => "Yes"] : ["label" => "No"]
+                    "dropdown8__1" => $application->plug == 'Y' ? ["ids" => [1]] : ["ids" => [2]]
                 ]
             )
         ];

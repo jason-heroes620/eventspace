@@ -13,6 +13,7 @@ use App\Models\EventBooth;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\EventApplicationsController;
+use App\Http\Controllers\EventOrdersController;
 use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\VendorsController;
 use App\Models\EventApplications;
@@ -22,6 +23,10 @@ use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Log;
 use App\Models\ApplicationError;
 use App\Models\ResponseEmailList;
+
+use App\Http\Controllers\ExcelImportController;
+
+
 
 Route::get('/', function () {
     return view('login');
@@ -42,6 +47,11 @@ Route::group(['middleware' => 'guest'], function () {
     Route::get('products/event/{event}', [ProductsController::class, 'index'])->name('products-event');
     Route::get('products/event/{event}/vendor/{vendor}', [ProductsController::class, 'index'])->name('products-event-vendor');
     Route::get('products/vendor/{vendor}', [ProductsController::class, 'index'])->name('products-vendor');
+
+    Route::get('orders', [EventOrdersController::class, 'orders']);
+
+    Route::get('/upload', [ExcelImportController::class, 'showUploadForm'])->name('excel.uploadform');
+    Route::post('/import', [ExcelImportController::class, 'import'])->name('excel.import');
 });
 
 Route::group(['middleware' => 'auth'], function () {
@@ -171,7 +181,7 @@ Route::get('/testHandleMondayMutation/{id}', function (string $application_id) {
                 "numbers3" => $application->booth_qty,
                 "text98" => $application->description,
                 "label6__1" => ["index" => $booth->monday_booth_id],
-                "checkbox__1" => $application->plug == 'Y' ? ["label" => "Yes"] : ["label" => "No"]
+                "dropdown8__1" => $application->plug == 'Y' ? ["ids" => [1]] : ["ids" => [2]]
             ]
         )
     ];
