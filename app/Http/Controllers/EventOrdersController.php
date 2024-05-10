@@ -180,7 +180,6 @@ class EventOrdersController extends Controller
 
         // insert payment_history
         $payment_history->event_order_id = $OrderNumber;
-        $payment_history->payment_description = $TxnMessage;
         $payment_history->save();
 
         // update event_payment status
