@@ -216,7 +216,7 @@ class EventApplicationsController extends Controller
                 $payment->save();
 
                 $id = $payment->id;
-                $payment_link = "https://" . config('custom.payment_redirect_host') . "/payment/" . $id . "/code/" . $application->application_code;
+                $payment_link = config('custom.payment_redirect_host') . "/payment/" . $id . "/code/" . $application->application_code;
                 // send successful email
                 $this->sendNotificationEmail($status->status, $event, $application, $payment_link);
             }

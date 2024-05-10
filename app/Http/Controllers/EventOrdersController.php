@@ -26,7 +26,7 @@ class EventOrdersController extends Controller
     {
         if ($_SERVER['REQUEST_METHOD'] === "POST") {
             $data = $this->addOrder($req->post());
-            $resp = config("custom.payment_redirect_host") . "/orders/" . $data['order_id'] . '/code/' . $data['order_code'];
+            $resp = config("custom.cart_order_redirect_host") . "/orders/" . $data['order_id'] . '/code/' . $data['order_code'];
             return $this->sendResponse($resp, 200);
         } else if ($_SERVER['REQUEST_METHOD'] === "GET") {
             if (isset($req->id) && isset($req->code)) {
@@ -191,7 +191,7 @@ class EventOrdersController extends Controller
                 ],
                 ['status' => $payment_status]
             );
-        $domain = config("custom.payment_redirect_host") . "/paymentSummary/" . $OrderNumber . "/code/" . $order_code;
+        $domain = config("custom.cart_order_redirect_host") . "/paymentSummary/" . $OrderNumber . "/code/" . $order_code;
 
         if ($TxnStatus == 0 && !$this->checkIfPaymentIdExists($PaymentID)) {
             try {
