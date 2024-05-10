@@ -12,6 +12,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Sheet;
 use Throwable;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class ExcelImportController extends Controller
 {
@@ -51,6 +52,12 @@ class ExcelImportController extends Controller
     {
         $company_registration = $vendor[1][2];
         $v = Vendors::where('company_registration', $company_registration)->first();
+
+        $path = '/public/img/' . $company_registration;
+        if (!Storage::exists($path)) {
+            Storage::makeDirectory($path);
+        }
+
         if ($v) {
             return $v->id;
         } else {
@@ -82,7 +89,7 @@ class ExcelImportController extends Controller
     {
         foreach ($products as $i => $product) {
             if ($i !== 0) {
-                $id = Products::where('product_name', $product[1])->where('vendor_id', $vendor_id)->where('status', 0)->first();
+                $id = Products::where('product_name', $product[1])->where('product_description', $product[2])->where('vendor_id', $vendor_id)->where('status', 0)->first();
                 if (!$id) {
                     $vendor = Vendors::where('id', $vendor_id)->first();
                     $prod = new Products;

@@ -90,13 +90,13 @@
     <div class="container mt-2">
         <div class="py-4">
             <table class="table table-condensed table-hover table-sm mb-5 table-responsive">
-                <thead>
+                <thead class="small">
                     <tr class="table-info">
                         <th>No</th>
                         <th>Image</th>
                         <th scope="col">Product</th>
                         <!-- <th scope="col">Description</th> -->
-                        <th scope="col">Price</th>
+                        <th scope="col">Price (RM)</th>
                         <th scope="col">Vendor</th>
                         <th></th>
                     </tr>
@@ -107,23 +107,24 @@
                         <td>{{ $index + $products->firstItem() }}</td>
                         <td>
                             @if($product->product_image)
-                            <img src="{{ asset('storage/img/' . $product->product_image) }}" alt="" width="100px" height="auto" class="showEnlargeImage">
+                            <img src="{{ asset('storage/img/' . $product->product_image) }}" alt="" width="auto" height="50px" class="showEnlargeImage">
                             @endif
                         </td>
                         <td>{{ $product->product_name }}</td>
                         <!-- <td>{{ $product->product_description }}</td> -->
-                        <td>{{ $product->display_price }}</td>
+                        <td class="text-end border px-2"><strong>{{ $product->product_price }}</strong></td>
                         <td>{{ $product->organization->organization }}</td>
-                        <td class="border">
+                        <td class="">
                             <a class="btn btn-sm btn-primary mx-4" type="button" data-bs-toggle="collapse" data-bs-target="#{{ $product->product_code}}" aria-expanded="false" aria-controls="{{ $product->product_code }}">Show QR</button>
                         </td>
                     </tr>
 
                     <tr class="collapse" id="{{$product->product_code}}">
-                        <td colspan='6'>
+                        <td colspan="2">{{ $product->product_description }}</td>
+                        <td colspan='4'>
                             <table class="table">
                                 <tr>
-                                    <td>{{ $product->qr }}</td>
+                                    <td class="text-end">{{ $product->qr }}</td>
                                 </tr>
                             </table>
                         </td>

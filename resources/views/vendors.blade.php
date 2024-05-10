@@ -61,7 +61,7 @@
                 <thead>
                     <tr class="table-info">
                         <th>No</th>
-                        <th scope="col" colspan="2">Vendor</th>
+                        <th scope="col" colspan="3">Vendor</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -69,22 +69,32 @@
                     @foreach($vendors as $index => $vendor)
                     <tr class="align-middle">
                         <td>{{ $index + $vendors->firstItem() }}</td>
-                        <td colspan="2">{{ $vendor->organization }}</td>
+                        <td colspan="3">{{ $vendor->organization }}</td>
                         <td><a class="btn btn-sm btn-primary mx-4" type="button" data-bs-toggle="collapse" data-bs-target="#{{ $vendor->id}}" aria-expanded="false" aria-controls="{{ $vendor->id }}">Show QR</button></td>
                     </tr>
                     <tr class="collapse" id="{{ $vendor->id }}">
-                        <td colspan='6'>
-                            <table class="table">
+                        <td colspan='5'>
+                            <table class="table table-condensed table-responsive">
+                                <thead>
+                                    <tr class="table-primary">
+                                        <th></th>
+                                        <th>Product</th>
+                                        <th>Description</th>
+                                        <th class="text-end">Price (RM)</th>
+                                        <th class="text-center">QR</th>
+                                    </tr>
+                                </thead>
                                 @foreach($vendor->products as $product)
                                 <tr>
                                     <td class="align-center">
                                         @if($product->product_image)
-                                        <img src=" {{ asset('storage/img/' . $product->product_image) }}" alt="" width="100px" height="auto" class="showEnlargeImage">
+                                        <img src="{{ asset('storage/img/' . $product->product_image) }}" alt="" width="100px" height="auto" class="showEnlargeImage">
                                         @endif
                                     </td>
                                     <td>{{ $product->product_name}}</td>
-                                    <td>{{ $product->display_price }}</td>
-                                    <td>{{ $product->qr}}</td>
+                                    <td>{{ $product->product_description}}</td>
+                                    <td class="text-end border px-2"><strong>{{ $product->product_price }}</strong></td>
+                                    <td class="text-end">{{ $product->qr}}</td>
                                 </tr>
                                 @endforeach
                             </table>
