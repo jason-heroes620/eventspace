@@ -14,6 +14,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\EventApplicationsController;
 use App\Http\Controllers\EventOrdersController;
+use App\Http\Controllers\EventProductsController;
 use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\VendorsController;
 use App\Models\EventApplications;
@@ -39,14 +40,20 @@ Route::group(['middleware' => 'guest'], function () {
     Route::get('/login', [AuthController::class, 'login'])->name('login');
     Route::post('/login', [AuthController::class, 'loginPost'])->name('login');
 
-    Route::get('vendors/', [VendorsController::class, 'index'])->name('vendors');
-    Route::get('vendor/{id}', [VendorsController::class, 'index'])->name('vendor');
+    Route::get('/vendors', [VendorsController::class, 'index'])->name('vendors');
+    Route::get('/vendor/{id}', [VendorsController::class, 'index'])->name('vendor');
+    Route::post('/vendors', [VendorsController::class, 'vendorsfilter'])->name('vendors');
+
+    Route::get('/eventproducts', [EventProductsController::class, 'eventproducts'])->name('eventproducts');
+    Route::post('/eventproducts', [EventProductsController::class, 'eventproductsfilter'])->name('eventproducts');
 
     Route::get('products', [ProductsController::class, 'index'])->name('products');
     Route::get('products/{id}', [ProductsController::class, 'index'])->name('product-detail');
     Route::get('products/event/{event}', [ProductsController::class, 'index'])->name('products-event');
     Route::get('products/event/{event}/vendor/{vendor}', [ProductsController::class, 'index'])->name('products-event-vendor');
     Route::get('products/vendor/{vendor}', [ProductsController::class, 'index'])->name('products-vendor');
+
+    Route::post('products', [ProductsController::class, 'index']);
 
     Route::get('orders', [EventOrdersController::class, 'orders']);
 

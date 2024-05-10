@@ -182,13 +182,19 @@ class EventApplicationsController extends Controller
         }
 
         try {
+            // $event_applications = EventApplications::find($application_id);
+            // $event_applications->status = $status->status;
+            // $event_applications->save();
+            // DB::table('event_applications')
+            //     ->update(
+            //         [
+            //             'id' => $application_id
+            //         ],
+            //         ['status' => $status->status]
+            //     );
             DB::table('event_applications')
-                ->updateOrInsert(
-                    [
-                        'id' => $application_id
-                    ],
-                    ['status' => $status->status]
-                );
+                ->where('id', $application_id)
+                ->update(['status' => $status->status]);
 
             $application = EventApplications::where('id', $application_id)->first();
             $event = Events::where('id', $application->event_id)
@@ -320,13 +326,16 @@ class EventApplicationsController extends Controller
                 $error->save();
             } else {
                 $id = $data->data->create_item->id;
-                DB::table('event_applications')
-                    ->updateOrInsert(
-                        [
-                            'id' => $application_id
-                        ],
-                        ['monday_id' => $id]
-                    );
+                // DB::table('event_applications')
+                //     ->update(
+                //         [
+                //             'id' => $application_id
+                //         ],
+                //         ['monday_id' => $id]
+                //     );
+                $event_applications = EventApplications::find($application_id);
+                $event_applications->monday_id = $id;
+                $event_applications->save();
             }
         } catch (Throwable $ex) {
             Log::error($ex);

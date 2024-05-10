@@ -9,6 +9,7 @@ use App\Http\Controllers\EventBoothController;
 use App\Http\Controllers\EventPaymentController;
 use App\Http\Controllers\EventCategoriesController;
 use App\Http\Controllers\EventApplicationsController;
+use App\Http\Controllers\EventOrdersController;
 use App\Http\Controllers\TermsAndConditionsController;
 
 Route::get('/user', function (Request $request) {
@@ -37,3 +38,8 @@ Route::post('applications', [EventApplicationsController::class, 'applications']
 Route::get('applications/{id?}', [EventApplicationsController::class, 'applications']);
 
 Route::get('tnc/{id?}', [TermsAndConditionsController::class, 'tnc']);
+
+Route::post('orders', [EventOrdersController::class, 'orders']);
+Route::get('orders', [EventOrdersController::class, 'orders']);
+Route::post('EGHLOrderPaymentCallback', [EventOrdersController::class, 'eghlpaymentcallback']);
+Route::get('EGHLOrderPaymentCallback', [EventOrdersController::class, 'eghlpaymentcallback']);

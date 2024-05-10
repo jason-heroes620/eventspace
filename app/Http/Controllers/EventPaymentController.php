@@ -199,7 +199,7 @@ class EventPaymentController extends Controller
                 ],
                 ['status' => $payment_status]
             );
-        $domain = "https://" . config("custom.payment_redirect_host") . "/paymentSummary/" . $OrderNumber . "/status/" . $payment_status;
+        $domain = config("custom.payment_redirect_host") . "/paymentSummary/" . $OrderNumber . "/status/" . $payment_status;
 
         if ($TxnStatus == 0 && !$this->checkIfPaymentIdExists($PaymentID)) {
             try {
@@ -208,7 +208,7 @@ class EventPaymentController extends Controller
                 // $this->handleMondayMutation($OrderNumber);
 
                 $payment_log = new PaymentLogs;
-                $payment_log->payment_id = $PaymentID;
+                $payment_log->payment_ref = $PaymentID;
                 $payment_log->save();
             } catch (Throwable $ex) {
                 Log::error($ex);
@@ -220,7 +220,7 @@ class EventPaymentController extends Controller
 
     private function checkIfPaymentIdExists($payment_id)
     {
-        $payment = PaymentLogs::where('payment_id', $payment_id)->get()->count();
+        $payment = PaymentLogs::where('payment_ref', $payment_id)->get()->count();
         if ($payment > 0) {
             return true;
         }
