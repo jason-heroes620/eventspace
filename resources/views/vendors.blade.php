@@ -79,7 +79,7 @@
                                 <tr>
                                     <td class="align-center">
                                         @if($product->product_image)
-                                        <img src=" {{ asset('/img/' . $product->product_image) }}" alt="" width="100px" height="auto" class="showEnlargeImage">
+                                        <img src=" {{ asset('storage/img/' . $product->product_image) }}" alt="" width="100px" height="auto" class="showEnlargeImage">
                                         @endif
                                     </td>
                                     <td>{{ $product->product_name}}</td>
