@@ -101,7 +101,7 @@
             </table>
         </div>
         <div class="d-flex justify-content-center pagination">
-            {{ $products->links() }}
+            {{ $products->appends($_GET)->links() }}
         </div>
     </div>
     <div class="container">

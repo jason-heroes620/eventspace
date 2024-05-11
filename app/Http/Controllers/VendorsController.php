@@ -16,19 +16,19 @@ class VendorsController extends Controller
         if (isset($req->id)) {
             $vendor = $this->getVendorById($req->id);
             $products = $this->getVendorProducts($req->id);
-            return view('vendor', ['vendor' => $vendor, 'products' => $products])->with('selectedShort', $req->short);
+            return view('vendor', ['vendor' => $vendor, 'products' => $products])->with('s', $req->s);
         } else {
-            $vendors = $this->getVendors();
+            $vendors = $this->getVendorsByShort($req->s);
             $vendor_shorts = $this->getVendorShorts();
 
             $vendors = $this->loadProducts($vendors);
-            return view('vendors', ['vendors' => $vendors, 'shorts' => $vendor_shorts])->with('selectedShort', $req->short);
+            return view('vendors', ['vendors' => $vendors, 'shorts' => $vendor_shorts])->with('s', $req->s);
         }
     }
 
     public function vendorsfilter(Request $req)
     {
-        $vendors = $this->getVendorsByShort($req->short);
+        $vendors = $this->getVendorsByShort($req->s);
         $vendor_shorts = $this->getVendorShorts();
 
         $vendors = $this->loadProducts($vendors);
@@ -51,7 +51,7 @@ class VendorsController extends Controller
 
     private function getVendors()
     {
-        return Vendors::paginate(10);
+        return Vendors::paginate(5);
     }
 
     public function getVendorById($id)
@@ -67,9 +67,9 @@ class VendorsController extends Controller
     private function getVendorsByShort($short)
     {
         if ($short) {
-            return Vendors::where('vendor_short', $short)->where('status', 0)->paginate(10);
+            return Vendors::where('vendor_short', $short)->where('status', 0)->paginate(5);
         } else {
-            return Vendors::where('status', 0)->paginate(10);
+            return Vendors::where('status', 0)->paginate(5);
         }
     }
 

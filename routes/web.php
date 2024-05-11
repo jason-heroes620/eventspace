@@ -42,10 +42,10 @@ Route::group(['middleware' => 'guest'], function () {
 
     Route::get('/vendors', [VendorsController::class, 'index'])->name('vendors');
     Route::get('/vendor/{id}', [VendorsController::class, 'index'])->name('vendor');
-    Route::post('/vendors', [VendorsController::class, 'vendorsfilter'])->name('vendors');
+    Route::post('/vendors', [VendorsController::class, 'index'])->name('vendors');
 
     Route::get('/eventproducts', [EventProductsController::class, 'eventproducts'])->name('eventproducts');
-    Route::post('/eventproducts', [EventProductsController::class, 'eventproductsfilter'])->name('eventproducts');
+    Route::post('/eventproducts', [EventProductsController::class, 'eventproducts'])->name('eventproducts');
 
     Route::get('products', [ProductsController::class, 'index'])->name('products');
     Route::get('products/{id}', [ProductsController::class, 'index'])->name('product-detail');

@@ -24,9 +24,9 @@
                     <li class="nav-item">
                         <a class="nav-link active" aria-current="page" href="#">Vendors</a>
                     </li>
-                    <li class="nav-item">
+                    <!-- <li class="nav-item">
                         <a class="nav-link" aria-current="page" href="{{ route('products') }}">Products</a>
-                    </li>
+                    </li> -->
                 </ul>
                 <a href="{{ route('login') }}" class="btn btn-primary">Log In</a>
             </div>
@@ -36,10 +36,10 @@
         <div class="d-flex justify-content-start flex-row gap-2">
             @foreach($shorts as $short)
             <div class="row">
-                <form action="{{ route('vendors') }}" method="POST">
+                <form action="{{ route('vendors', ['s' => $short->vendor_short]) }}" method="POST">
                     @csrf
                     <input hidden type="text" name="short" class="form-control" id="short" value="{{ $short->vendor_short }}">
-                    @if($selectedShort == $short->vendor_short)
+                    @if($s == $short->vendor_short)
                     <button class="btn btn-sm border btn-info">{{ $short->vendor_short }}</button>
                     @else
                     <button class="btn btn-sm border">{{ $short->vendor_short }}</button>
@@ -104,6 +104,9 @@
                 </tbody>
             </table>
         </div>
+    </div>
+    <div class="d-flex justify-content-center pagination">
+        {{ $vendors->withQueryString()->links() }}
     </div>
     <div class="container">
         <div class="modal modal-lg fade" id="imagemodal" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true">

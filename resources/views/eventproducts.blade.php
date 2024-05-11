@@ -24,9 +24,9 @@
                     <li class="nav-item">
                         <a class="nav-link" aria-current="page" href="{{ route('vendors')}}">Vendors</a>
                     </li>
-                    <li class="nav-item">
+                    <!-- <li class="nav-item">
                         <a class="nav-link" aria-current="page" href="{{ route('products') }}">Products</a>
-                    </li>
+                    </li> -->
                 </ul>
                 <a href="{{ route('login') }}" class="btn btn-primary">Log In</a>
             </div>
@@ -67,10 +67,10 @@
         <div class="d-flex justify-content-start flex-row gap-2">
             @foreach($shorts as $short)
             <div class="row">
-                <form action="{{ route('eventproducts', ['eventId' => $eventId]) }}" method="POST">
+                <form action="{{ route('eventproducts', ['eventId' => $eventId, 's' => $short->product_short]) }}" method="POST">
                     @csrf
                     <input hidden type="text" name="short" class="form-control" id="short" value="{{ $short->product_short }}">
-                    @if($selectedShort == $short->product_short)
+                    @if($s == $short->product_short)
                     <button class="btn btn-sm border btn-info">{{ $short->product_short }}</button>
                     @else
                     <button class="btn btn-sm border">{{ $short->product_short }}</button>
@@ -134,7 +134,7 @@
             </table>
         </div>
         <div class="d-flex justify-content-center pagination">
-            {{ $products->links() }}
+            {{ $products->withQueryString()->links() }}
         </div>
     </div>
     <div class="modal modal-lg fade" id="imagemodal" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true">
