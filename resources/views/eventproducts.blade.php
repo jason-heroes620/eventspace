@@ -107,7 +107,7 @@
                         <td>{{ $index + $products->firstItem() }}</td>
                         <td>
                             @if($product->product_image)
-                            <img src="{{ asset('storage/img/' . $product->product_image) }}" alt="" width="auto" height="50px" class="showEnlargeImage">
+                            <img src="{{ asset('storage/img/' . $product->product_image) }}" data-src="{{ asset('storage/img/' . $product->product_image) }}" alt="" width="auto" height="50px" class="showEnlargeImage" loading="lazy">
                             @endif
                         </td>
                         <td>{{ $product->product_name }}</td>
@@ -115,7 +115,7 @@
                         <td class="text-end border px-2"><strong>{{ $product->product_price }}</strong></td>
                         <td>{{ $product->organization->organization }}</td>
                         <td class="">
-                            <a class="btn btn-sm btn-primary mx-4" type="button" data-bs-toggle="collapse" data-bs-target="#{{ $product->product_code}}" aria-expanded="false" aria-controls="{{ $product->product_code }}">Show QR</button>
+                            <a class="btn btn-sm btn-primary mx-4" type="button" data-bs-toggle="collapse" data-bs-target="#{{ $product->product_code }}" aria-expanded="false" aria-controls="{{ $product->product_code }}">Show QR</button>
                         </td>
                     </tr>
 
