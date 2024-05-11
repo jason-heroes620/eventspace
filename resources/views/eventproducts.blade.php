@@ -107,7 +107,7 @@
                         <td>{{ $index + $products->firstItem() }}</td>
                         <td>
                             @if($product->product_image)
-                            <img src="{{ asset('storage/img/' . $product->product_image) }}" data-src="{{ asset('storage/img/' . $product->product_image) }}" alt="" width="auto" height="50px" class="showEnlargeImage" loading="lazy">
+                            <img src="{{ asset('storage/img/' . $product->compressed_product_image) }}" data-src="{{ asset('storage/img/' . $product->product_image) }}" alt="" width="auto" height="50px" class="showEnlargeImage" loading="lazy">
                             @endif
                         </td>
                         <td>{{ $product->product_name }}</td>
@@ -157,7 +157,7 @@
 
     $(function() {
         $('.showEnlargeImage').on('click', function() {
-            $('.imagepreview').attr('src', $(this).attr('src'));
+            $('.imagepreview').attr('src', $(this).attr('data-src'));
             $('#imagemodal').modal('show');
         });
     });
