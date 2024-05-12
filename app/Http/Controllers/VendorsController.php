@@ -29,23 +29,7 @@ class VendorsController extends Controller
     {
         $vendors = $this->getVendorsByShort($req->s);
         $vendor_shorts = $this->getVendorShorts();
-
-        //$vendors = $this->loadProducts($vendors);
         return view('vendors', ['vendors' => $vendors, 'shorts' => $vendor_shorts])->with('selectedShort', $req->short);
-    }
-
-    private function loadProducts($vendors)
-    {
-        // foreach ($vendors as $vendor) {
-        //     $products = Products::where('vendor_id', $vendor->id)->get();
-        //     $vendor->products = $products;
-        // }
-        return $vendors;
-    }
-
-    private function getVendors()
-    {
-        return Vendors::paginate(10);
     }
 
     public function getVendorById($id)
@@ -55,7 +39,21 @@ class VendorsController extends Controller
 
     private function getVendorProducts($id)
     {
-        return Products::where('vendor_id', $id)->where('status', 0)->paginate();
+        $products = Products::where('vendor_id', $id)->where('status', 0)->paginate();
+
+        foreach ($products as $product) {
+            $product->qr = $this->getQR($product);
+        }
+
+        return $products;
+    }
+
+    private function getQR($product)
+    {
+        $qrCode = config("custom.payment_redirect_host") . "product?id=" . $product->id . "&code=" . $product->product_code . "&product_name=" . $product->product_name . "&price=" . $product->product_price;
+        $qr = QrCode::size(300)->generate(Crypt::encrypt($qrCode, 'H'));
+
+        return $qr;
     }
 
     private function getVendorsByShort($short)

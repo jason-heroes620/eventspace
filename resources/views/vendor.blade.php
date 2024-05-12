@@ -48,7 +48,7 @@
                         <td colspan='4'>
                             <table class="table">
                                 <tr>
-                                    <td class="text-end">{{ QrCode::size(300)->generate(Crypt::encrypt(config("custom.payment_redirect_host") . "product?id=" . $product->id . "&code=" . $product->product_code . "&product_name=" . $product->product_name . "&price=" . $product->product_price, 'H')) }}</td>
+                                    <td class="text-end">{{ $product->qr }}</td>
                                 </tr>
                             </table>
                         </td>
