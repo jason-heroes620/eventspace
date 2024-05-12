@@ -81,7 +81,7 @@ Route::get('/test-image', function () {
     $manager = new ImageManager(
         new Intervention\Image\Drivers\Gd\Driver()
     );
-    $products = DB::table('products')->where('compressed_product_image', '')->where('product_image', '!=', null)->get();
+    $products = DB::table('products')->where('compressed_product_image', null)->where('product_image', '!=', '')->get();
 
     foreach ($products as $product) {
         // dd($product);
