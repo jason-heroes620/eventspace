@@ -96,7 +96,7 @@
                         <th>Image</th>
                         <th scope="col">Product</th>
                         <!-- <th scope="col">Description</th> -->
-                        <th scope="col">Price (RM)</th>
+                        <th scope="col" class="text-end">Price (RM)</th>
                         <th scope="col">Vendor</th>
                         <th></th>
                     </tr>

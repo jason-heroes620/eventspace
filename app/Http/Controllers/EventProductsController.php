@@ -46,7 +46,7 @@ class EventProductsController extends Controller
     private function getQR($product)
     {
         $qrCode = config("custom.payment_redirect_host") . "product?id=" . $product->id . "&code=" . $product->product_code . "&product_name=" . $product->product_name . "&price=" . $product->product_price;
-        $qr = QrCode::size(300)->generate(Crypt::encrypt($qrCode));
+        $qr = QrCode::size(300)->generate(Crypt::encrypt($qrCode, 'H'));
 
         return $qr;
     }

@@ -16,12 +16,11 @@ class VendorsController extends Controller
         if (isset($req->id)) {
             $vendor = $this->getVendorById($req->id);
             $products = $this->getVendorProducts($req->id);
-            return view('vendor', ['vendor' => $vendor, 'products' => $products])->with('s', $req->s);
+
+            return view('vendor', ['vendor' => $vendor, 'products' => $products]);
         } else {
             $vendors = $this->getVendorsByShort($req->s);
             $vendor_shorts = $this->getVendorShorts();
-
-            $vendors = $this->loadProducts($vendors);
             return view('vendors', ['vendors' => $vendors, 'shorts' => $vendor_shorts])->with('s', $req->s);
         }
     }
@@ -31,27 +30,22 @@ class VendorsController extends Controller
         $vendors = $this->getVendorsByShort($req->s);
         $vendor_shorts = $this->getVendorShorts();
 
-        $vendors = $this->loadProducts($vendors);
+        //$vendors = $this->loadProducts($vendors);
         return view('vendors', ['vendors' => $vendors, 'shorts' => $vendor_shorts])->with('selectedShort', $req->short);
     }
 
     private function loadProducts($vendors)
     {
-        foreach ($vendors as $vendor) {
-            $products = $this->getVendorProducts($vendor->id);
-            foreach ($products as $product) {
-                $qrCode = "https://events.heroes.my/product?id=" . $product->id . "&code=" . $product->product_code . "&product_name=" . $product->product_name . "&price=" . $product->product_price;
-                $qr = QrCode::size(250)->generate(Crypt::encrypt($qrCode));
-                $product->qr = $qr;
-            }
-            $vendor->products = $products;
-        }
+        // foreach ($vendors as $vendor) {
+        //     $products = Products::where('vendor_id', $vendor->id)->get();
+        //     $vendor->products = $products;
+        // }
         return $vendors;
     }
 
     private function getVendors()
     {
-        return Vendors::paginate(5);
+        return Vendors::paginate(10);
     }
 
     public function getVendorById($id)
@@ -61,15 +55,15 @@ class VendorsController extends Controller
 
     private function getVendorProducts($id)
     {
-        return Products::where('vendor_id', $id)->where('status', 0)->get();
+        return Products::where('vendor_id', $id)->where('status', 0)->paginate();
     }
 
     private function getVendorsByShort($short)
     {
         if ($short) {
-            return Vendors::where('vendor_short', $short)->where('status', 0)->paginate(5);
+            return Vendors::where('vendor_short', $short)->where('status', 0)->orderBy('organization')->paginate(10);
         } else {
-            return Vendors::where('status', 0)->paginate(5);
+            return Vendors::where('status', 0)->orderBy('organization')->paginate(10);
         }
     }
 

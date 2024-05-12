@@ -15,8 +15,8 @@ class Vendors extends Model
     const CREATED_AT = 'created';
     const UPDATED_AT = null;
 
-    public function products(): HasMany
-    {
-        return $this->hasMany(Products::class, 'vendor_id');
-    }
+    // public function products(): HasMany
+    // {
+    //     return $this->hasMany(Products::class, 'vendor_id', 'id')->where('status', 0);
+    // }
 }

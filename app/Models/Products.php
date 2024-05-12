@@ -20,8 +20,8 @@ class Products extends Model
         return $this->belongsTo(Vendors::class);
     }
 
-    public function events(): BelongsToMany
-    {
-        return $this->belongsToMany(Events::class);
-    }
+    // public function events(): BelongsToMany
+    // {
+    //     return $this->belongsToMany(Events::class);
+    // }
 }
