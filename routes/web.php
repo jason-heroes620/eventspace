@@ -81,10 +81,11 @@ Route::get('/test-image', function () {
     $manager = new ImageManager(
         new Intervention\Image\Drivers\Gd\Driver()
     );
-    $products = DB::table('products')->where('compressed_product_image', null)->where('product_image', '!=', '')->get();
+    $products = DB::table('products')->where('compressed_product_image', null)->where('product_image', '!=', '')->orderBy('product_name')->get();
 
     foreach ($products as $product) {
         // dd($product);
+        print_r($product->product_name . '<br />');
         $image = asset('storage') . '/img/' . $product->product_image;
         $image_name = explode('/', $image);
         //dd($image_name);
@@ -95,14 +96,14 @@ Route::get('/test-image', function () {
             if (!Storage::exists($path)) {
                 Storage::makeDirectory($path);
             } else {
-                print_r('path exist');
+                print_r('path exist' . '<br />');
             }
         } catch (Exception $ex) {
             dd($ex);
         }
 
         $imageM = $manager->read(public_path() . '/storage/img/' . $image_name[sizeof($image_name) - 2] . '/' . $image_name[sizeof($image_name) - 1]);
-        $new_path = $path . 'compressed_' . $image_name[sizeof($image_name) - 1];
+        //$new_path = $path . 'compressed_' . $image_name[sizeof($image_name) - 1];
         // dd(public_path());
         $imageM->resize(300, 200, function ($const) {
             $const->aspectRatio();
