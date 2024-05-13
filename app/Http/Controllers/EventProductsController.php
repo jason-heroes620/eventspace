@@ -65,7 +65,7 @@ class EventProductsController extends Controller
     {
         if ($eventId) {
             $event = Events::find($eventId);
-            $products = $event->productsByShort($short)->orderBy('product_name', 'ASC')->paginate(10);
+            $products = $event->productsByShort($short)->orderBy('product_name', 'ASC')->paginate(8);
         } else {
             $products = DB::table('events_products')
                 ->leftJoin('events', 'events.id', '=', 'events_products.events_id')
@@ -77,7 +77,7 @@ class EventProductsController extends Controller
             }
 
             $products = $products->orderBy('products.product_name', 'ASC')
-                ->paginate(10);
+                ->paginate(8);
         }
         foreach ($products as $product) {
             $product->qr = $this->getQR($product);
