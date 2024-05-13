@@ -15,9 +15,10 @@ class VendorsController extends Controller
     {
         if (isset($req->id)) {
             $vendor = $this->getVendorById($req->id);
-            $products = $this->getVendorProducts($req->id);
+            $products = $this->getVendorProducts($req->id, $req->s);
+            $product_shorts = (new ProductsController)->getProductShorts($vendor->id);
 
-            return view('vendor', ['vendor' => $vendor, 'products' => $products]);
+            return view('vendor', ['vendor' => $vendor, 'products' => $products, 'shorts' => $product_shorts])->with('s', $req->s);
         } else {
             $vendors = $this->getVendorsByShort($req->s);
             $vendor_shorts = $this->getVendorShorts();
@@ -37,9 +38,13 @@ class VendorsController extends Controller
         return Vendors::where('id', $id)->first();
     }
 
-    private function getVendorProducts($id)
+    private function getVendorProducts($id, $short)
     {
-        $products = Products::where('vendor_id', $id)->where('status', 0)->paginate(8);
+        $products = Products::where('vendor_id', $id)->where('status', 0);
+        if ($short) {
+            $products = $products->where('product_short', $short);
+        }
+        $products = $products->paginate(8);
 
         foreach ($products as $product) {
             $product->qr = $this->getQR($product);

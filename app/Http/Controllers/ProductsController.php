@@ -68,6 +68,16 @@ class ProductsController extends Controller
 
     private function getProductsByShort($short)
     {
-        return Products::where('product_short', $short)->where('status')->paginate(10);
+        return Products::where('product_short', $short)->where('status')->paginate(8);
+    }
+
+    public function getProductShorts($vendor_id)
+    {
+        $products = Products::where('status', 0);
+
+        if ($vendor_id) {
+            $products = $products->where('vendor_id', $vendor_id);
+        }
+        return $products->orderBy('product_short', 'ASC')->distinct()->get(['product_short']);
     }
 }

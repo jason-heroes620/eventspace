@@ -17,7 +17,31 @@
                 <h4>{{ $vendor->organization }}</h4>
             </div>
         </div>
-        <div class="container py-2">
+        <div class="container">
+            <div class="d-flex justify-content-start flex-row gap-2 py-2">
+                @foreach($shorts as $short)
+                <div class="row">
+                    <form action="{{ route('vendor', ['id' => $vendor->id, 's' => $short->product_short]) }}" method="POST">
+                        @csrf
+                        <input hidden type="text" name="short" class="form-control" id="short" value="{{ $short->product_short }}">
+                        @if($s == $short->product_short)
+                        <button class="btn btn-sm border btn-info">{{ $short->product_short }}</button>
+                        @else
+                        <button class="btn btn-sm border">{{ $short->product_short }}</button>
+                        @endif
+                    </form>
+                </div>
+                @endforeach
+            </div>
+            <div class="py-2">
+                <form action="{{ route('vendor', ['id' => $vendor->id]) }}" method="POST">
+                    @csrf
+                    <button class="btn btn-sm border bg-warning">Clear Filter</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="container py-4">
             <table class="table table-condensed table-hover table-sm mb-5 table-responsive">
                 <thead class="small">
                     <tr class="table-info">
