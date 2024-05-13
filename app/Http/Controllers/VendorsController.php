@@ -39,7 +39,7 @@ class VendorsController extends Controller
 
     private function getVendorProducts($id)
     {
-        $products = Products::where('vendor_id', $id)->where('status', 0)->paginate(10);
+        $products = Products::where('vendor_id', $id)->where('status', 0)->paginate(8);
 
         foreach ($products as $product) {
             $product->qr = $this->getQR($product);
