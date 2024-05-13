@@ -98,7 +98,11 @@ class ExcelImportController extends Controller
                     $prod->product_description = $product[2];
                     $prod->product_price = number_format((float)($product[4]), 2);
                     $prod->display_price = 'RM' . number_format((float)($product[4]), 2);
-                    $prod->product_image = $vendor->company_registration . "/" . $product[5];
+                    if ($product[5]) {
+                        $prod->product_image = $vendor->company_registration . "/" . $product[5];
+                    } else {
+                        $prod->product_image = '';
+                    }
                     $prod->product_short = strtoupper(substr($product[1], 0, 1));
                     $prod->product_code = $this->generateCode(8);
                     $prod->save();

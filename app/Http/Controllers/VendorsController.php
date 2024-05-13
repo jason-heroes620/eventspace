@@ -39,7 +39,7 @@ class VendorsController extends Controller
 
     private function getVendorProducts($id)
     {
-        $products = Products::where('vendor_id', $id)->where('status', 0)->paginate();
+        $products = Products::where('vendor_id', $id)->where('status', 0)->paginate(10);
 
         foreach ($products as $product) {
             $product->qr = $this->getQR($product);
@@ -59,9 +59,9 @@ class VendorsController extends Controller
     private function getVendorsByShort($short)
     {
         if ($short) {
-            return Vendors::where('vendor_short', $short)->where('status', 0)->orderBy('organization')->paginate(10);
+            return Vendors::where('vendor_short', $short)->where('status', 0)->orderBy('organization')->paginate(15);
         } else {
-            return Vendors::where('status', 0)->orderBy('organization')->paginate(10);
+            return Vendors::where('status', 0)->orderBy('organization')->paginate(15);
         }
     }
 
