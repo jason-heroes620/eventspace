@@ -63,7 +63,7 @@
                         </td>
                         <td>{{ $product->product_name }}</td>
                         <td class="text-end border px-2"><strong>{{ $product->product_price }}</strong></td>
-                        <td class="text-end">{{ $product->stock }}</td>
+                        <td class="text-end">{{ $product->product_stock }}</td>
                         <td class="">
                             <a class="btn btn-sm btn-primary mx-4" type="button" data-bs-toggle="collapse" data-bs-target="#{{ $product->product_code }}" aria-expanded="false" aria-controls="{{ $product->product_code }}">Show QR</button>
                         </td>
