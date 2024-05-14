@@ -30,6 +30,7 @@ use Intervention\Image\ImageManager;
 
 
 use App\Http\Controllers\ExcelImportController;
+use App\Http\Controllers\SalesReportController;
 use App\Models\Products;
 
 
@@ -66,6 +67,9 @@ Route::group(['middleware' => 'guest'], function () {
 
     Route::get('/upload', [ExcelImportController::class, 'showUploadForm'])->name('excel.uploadform');
     Route::post('/import', [ExcelImportController::class, 'import'])->name('excel.import');
+
+    Route::get('/salesreport', [SalesReportController::class, 'salesreport'])->name('salesreport');
+    Route::post('/salesreport', [SalesReportController::class, 'salesreport'])->name('salesreport');
 });
 
 Route::group(['middleware' => 'auth'], function () {
