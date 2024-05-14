@@ -7,7 +7,7 @@ use App\Models\EventOrderPaymentDetails;
 use App\Models\EventOrders;
 use App\Models\EventOrderPaymentHistory;
 use App\Models\PaymentLogs;
-
+use App\Models\Products;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Exception;
@@ -207,6 +207,13 @@ class EventOrdersController extends Controller
             }
         }
 
+        // deduct qty from stock
+        try {
+            $this->deductQtyFromStock($OrderNumber);
+        } catch (Throwable $ex) {
+            Log::error($ex);
+        }
+
         return redirect()->away($domain)->send();
     }
 
@@ -217,5 +224,16 @@ class EventOrdersController extends Controller
             return true;
         }
         return false;
+    }
+
+    private function deductQtyFromStock($order_id)
+    {
+        $event_products = DB::table('event_order_products')->where('event_order_id', $order_id)->get();
+
+        foreach ($event_products as $product) {
+            $item = Products::find($product->product_id);
+            $item->stock = $item->stock - $product->quantity;
+            $item->save();
+        }
     }
 }
