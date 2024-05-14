@@ -232,7 +232,7 @@ class EventOrdersController extends Controller
 
         foreach ($event_products as $product) {
             $item = Products::find($product->product_id);
-            $item->stock = $item->stock - $product->quantity;
+            $item->stock = $item->product_stock - $product->quantity;
             $item->save();
         }
     }
