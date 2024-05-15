@@ -208,11 +208,11 @@ class EventOrdersController extends Controller
         }
 
         // deduct qty from stock
-        try {
-            $this->deductQtyFromStock($OrderNumber);
-        } catch (Throwable $ex) {
-            Log::error($ex);
-        }
+        // try {
+        //     $this->deductQtyFromStock($OrderNumber);
+        // } catch (Throwable $ex) {
+        //     Log::error($ex);
+        // }
 
         return redirect()->away($domain)->send();
     }
