@@ -23,18 +23,18 @@
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a class="nav-link @active('home')" aria-current="page" href="{{ route('home')}}">Home</a>
+                        <a class="nav-link @if(Route::currentRouteName() == 'home') active @endif" aria-current=" page" href="{{ route('home')}}">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link @active('applications')" aria-current="page" href="{{ route('applications')}}">Applications</a>
+                        <a class="nav-link @if(Route::currentRouteName() == 'applications') active @endif" aria-current="page" href="{{ route('applications')}}">Applications</a>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle  @active(['dailysales','vendorsales'])" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle  @if(Route::currentRouteName() == 'dailysales' || Route::currentRouteName() == 'vendorsales') active @endif" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             Event Sales
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item  @active('dailysales')" href="{{ route('dailysales') }}">Daily Sales</a></li>
-                            <li><a class="dropdown-item  @active('vendorsales')" href="{{ route('vendorsales') }}">Vendor Sales Report</a></li>
+                            <li><a class="dropdown-item  @if(Route::currentRouteName() == 'dailysales') active @endif" href="{{ route('dailysales') }}">Daily Sales</a></li>
+                            <li><a class="dropdown-item   @if(Route::currentRouteName() == 'vendorsales') active @endif" href="{{ route('vendorsales') }}">Vendor Sales Report</a></li>
                         </ul>
                     </li>
                 </ul>
