@@ -57,9 +57,9 @@ const Vendorsales = () => {
                                 </tr>
                             </thead>
                             <tbody className="small">
-                                {salesReport.map((sales) => {
+                                {salesReport.map((sales, i) => {
                                     return (
-                                        <tr>
+                                        <tr key={i}>
                                             <td>{sales.organization}</td>
                                             <td className="text-end">
                                                 {sales.total}
