@@ -52,4 +52,32 @@ class SalesReportController extends Controller
         $dates = Events::find($event_id)->select('event_start_date, event_end_date');
         return $dates;
     }
+
+    public function vendorsales()
+    {
+        return view('vendorsales');
+    }
+
+    public function vendorsalesreport(Request $req)
+    {
+        $sales = $this->getVendorSales($req->id);
+        return $this->sendResponse($sales, 200);
+    }
+    private function getVendorSales($event_id)
+    {
+        if ($event_id) {
+            $sales = DB::table('events_products')
+                ->selectRaw('vendors.organization, sum(event_order_products.price) as total')
+                ->leftJoin('products', 'events_products.products_id', '=', 'products.id')
+                ->leftjoin('event_order_products', 'event_order_products.product_id', '=', 'products.id')
+                ->leftJoin('event_orders', 'event_orders.id', '=', 'event_order_products.event_order_id')
+                ->leftJoin('vendors', 'products.vendor_id', '=', 'vendors.id')
+                ->where('events_products.events_id', $event_id)
+                ->where('event_orders.status', 2)
+                ->groupBy('vendors.organization')
+                ->get();
+
+            return $sales;
+        }
+    }
 }

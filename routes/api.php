@@ -10,6 +10,7 @@ use App\Http\Controllers\EventPaymentController;
 use App\Http\Controllers\EventCategoriesController;
 use App\Http\Controllers\EventApplicationsController;
 use App\Http\Controllers\EventOrdersController;
+use App\Http\Controllers\SalesReportController;
 use App\Http\Controllers\TermsAndConditionsController;
 
 Route::get('/user', function (Request $request) {
@@ -43,3 +44,5 @@ Route::post('orders', [EventOrdersController::class, 'orders']);
 Route::get('orders', [EventOrdersController::class, 'orders']);
 Route::post('EGHLOrderPaymentCallback', [EventOrdersController::class, 'eghlpaymentcallback']);
 Route::get('EGHLOrderPaymentCallback', [EventOrdersController::class, 'eghlpaymentcallback']);
+
+Route::get('vendorsales/{id}', [SalesReportController::class, 'vendorsalesreport']);

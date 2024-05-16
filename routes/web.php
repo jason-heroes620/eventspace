@@ -80,6 +80,14 @@ Route::group(['middleware' => 'auth'], function () {
     Route::delete('/logout', [AuthController::class, 'logout'])->name('logout');
 
     Route::post('/applications/{id}', [EventApplicationsController::class, 'updateStatus'])->name('updateStatus');
+
+    Route::get('/dailysales', [SalesReportController::class, 'dailysales'])->name('dailysales');
+    Route::post('/dailysales', [SalesReportController::class, 'dailysales'])->name('dailysales');
+
+    Route::get('/vendorsales', [SalesReportController::class, 'vendorsales'])->name('vendorsales');
+
+
+    Route::view('/{any?}', 'dashboard')->where('any', '.*');
 });
 
 Route::get('/test-image', function () {
