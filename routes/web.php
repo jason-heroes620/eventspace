@@ -87,6 +87,45 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/vendorsales', [SalesReportController::class, 'vendorsales'])->name('vendorsales');
 
 
+    Route::get('/compressed-image', function () {
+        $manager = new ImageManager(
+            new Intervention\Image\Drivers\Gd\Driver()
+        );
+        $products = DB::table('products')->where('compressed_product_image', null)->where('product_image', '!=', '')->orderBy('product_name')->get();
+
+        foreach ($products as $product) {
+            // dd($product);
+            print_r($product->product_name . '<br />');
+            $image = asset('storage') . '/img/' . $product->product_image;
+            $image_name = explode('/', $image);
+            //dd($image_name);
+            // dd($image_name);
+            $path = '/public/img/' . $image_name[sizeof($image_name) - 2] . '/compressed/';
+            // dd($path);
+            try {
+                if (!Storage::exists($path)) {
+                    Storage::makeDirectory($path);
+                } else {
+                    print_r('path exist' . '<br />');
+                }
+            } catch (Exception $ex) {
+                dd($ex);
+            }
+
+            $imageM = $manager->read(public_path() . '/storage/img/' . $image_name[sizeof($image_name) - 2] . '/' . $image_name[sizeof($image_name) - 1]);
+            //$new_path = $path . 'compressed_' . $image_name[sizeof($image_name) - 1];
+            // dd(public_path());
+            $imageM->resize(300, 200, function ($const) {
+                $const->aspectRatio();
+            })->save(public_path() . '/storage/img/' . $image_name[sizeof($image_name) - 2] . '/compressed/compressed_' . $image_name[sizeof($image_name) - 1]);
+
+            DB::table('products')
+                ->where('id', $product->id)
+                ->update(['compressed_product_image' => $image_name[sizeof($image_name) - 2] . '/compressed/' . 'compressed_' . $image_name[sizeof($image_name) - 1]]);
+        }
+    });
+
+
     Route::view('/{any?}', 'dashboard')->where('any', '.*');
 });
 
