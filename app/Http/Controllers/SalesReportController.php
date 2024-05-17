@@ -39,7 +39,7 @@ class SalesReportController extends Controller
                 ->leftJoin('vendors', 'vendors.id', '=', 'products.vendor_id')
                 ->where('event_orders.status', 2)
                 ->whereDate('event_orders.created', $salesDate)
-                ->selectRaw('products.id, products.product_name, vendors.organization, sum(event_order_products.quantity) as quantity, sum(event_order_products.price) as sales, event_orders.created')
+                ->selectRaw('products.id, products.product_name, vendors.organization, sum(event_order_products.quantity) as quantity, sum(event_order_products.total) as sales, event_orders.created')
                 ->groupBy('products.id', 'products.product_name', 'vendors.organization', 'event_orders.created')
                 ->get();
         }
@@ -67,7 +67,7 @@ class SalesReportController extends Controller
     {
         if ($event_id) {
             $sales = DB::table('events_products')
-                ->selectRaw('vendors.organization, sum(event_order_products.price) as total')
+                ->selectRaw('vendors.organization, sum(event_order_products.total) as total')
                 ->leftJoin('products', 'events_products.products_id', '=', 'products.id')
                 ->leftjoin('event_order_products', 'event_order_products.product_id', '=', 'products.id')
                 ->leftJoin('event_orders', 'event_orders.id', '=', 'event_order_products.event_order_id')
