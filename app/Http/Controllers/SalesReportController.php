@@ -55,6 +55,7 @@ class SalesReportController extends Controller
                 ->leftJoin('vendors', 'vendors.id', '=', 'products.vendor_id')
                 ->where('event_orders.status', 2)
                 ->whereDate('event_orders.created', $salesDate)
+                ->where('event_order_payment_details.status', 2)
                 ->selectRaw('products.id, products.product_name, vendors.organization, event_order_products.quantity, event_order_products.total, event_order_payment_details.payment_ref, event_order_payment_details.payment_method, event_order_payment_details.issuing_bank, event_orders.created')
                 ->groupBy('products.id', 'products.product_name', 'vendors.organization', 'event_order_products.quantity', 'event_order_products.total', 'event_order_payment_details.payment_ref', 'event_order_payment_details.payment_method', 'event_order_payment_details.issuing_bank', 'event_orders.created')
                 ->orderBy('event_orders.created', 'ASC')
