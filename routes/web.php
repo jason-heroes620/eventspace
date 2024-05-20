@@ -126,7 +126,7 @@ Route::group(['middleware' => 'auth'], function () {
     });
 
 
-    Route::view('/{any?}', 'dashboard')->where('any', '.*');
+    // Route::view('/{any?}', 'dashboard')->where('any', '.*');
 });
 
 Route::get('/test-image', function () {

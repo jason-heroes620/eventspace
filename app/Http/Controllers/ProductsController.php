@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\EventsProductsDiscounts;
 use App\Models\Products;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
@@ -79,5 +80,28 @@ class ProductsController extends Controller
             $products = $products->where('vendor_id', $vendor_id);
         }
         return $products->orderBy('product_short', 'ASC')->distinct()->get(['product_short']);
+    }
+
+    public function productsdiscounts(Request $req)
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            if (isset($req->id)) {
+                $data = $this->getProductsDiscounts($req->id);
+            }
+            return $this->sendResponse($data, 200);
+        } else {
+            return $this->sendError('', ['error' => 'Allowed headers GET'], 405);
+        }
+    }
+
+    private function getProductsDiscounts($product_id)
+    {
+        $discount = EventsProductsDiscounts::where('product_id', $product_id)
+            ->where('status', 0)
+            ->whereDate('valid_date', '<=', now())
+            ->whereDate('expiry_date', '>=', now())
+            ->first();
+
+        return $discount;
     }
 }

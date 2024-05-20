@@ -10,6 +10,7 @@ use App\Http\Controllers\EventPaymentController;
 use App\Http\Controllers\EventCategoriesController;
 use App\Http\Controllers\EventApplicationsController;
 use App\Http\Controllers\EventOrdersController;
+// use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\SalesReportController;
 use App\Http\Controllers\TermsAndConditionsController;
 
@@ -45,4 +46,11 @@ Route::get('orders', [EventOrdersController::class, 'orders']);
 Route::post('EGHLOrderPaymentCallback', [EventOrdersController::class, 'eghlpaymentcallback']);
 Route::get('EGHLOrderPaymentCallback', [EventOrdersController::class, 'eghlpaymentcallback']);
 
+// Sales Report
 Route::get('vendorsales/{id}', [SalesReportController::class, 'vendorsalesreport']);
+Route::get('sales/{eventId}/date/{date}/type/{type}', [SalesReportController::class, 'sales']);
+
+Route::get('vendorsalesbyvendorid/{eventId}/vendor/{vendorId}', [SalesReportController::class, 'vendorsalesbyvendorid']);
+
+
+// Route::get('checkproductsdiscounts/{id}', [ProductsController::class, 'productsdiscounts']);

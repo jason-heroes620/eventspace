@@ -1,10 +1,16 @@
 import React, { useEffect, useState } from "react";
 import axiosConfig from "../utils/axiosConfig";
+import { saveAs } from "file-saver";
+import * as XLSX from "xlsx";
 
 type Event = {
     id: number;
     event_name: string;
 };
+
+const fileType =
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8";
+const fileExtension = ".xlsx";
 
 const Vendorsales = () => {
     const [events, setEvents] = useState<Event>();
@@ -19,11 +25,29 @@ const Vendorsales = () => {
     }, []);
 
     const handleEventChange = (event: any) => {
-        // setSelectedEvent(event.target.value);
+        setSelectedEvent(event.target.value);
         axiosConfig.get(`/vendorsales/${event.target.value}`).then((resp) => {
             const data = resp.data.data;
             setSalesReport(data);
         });
+    };
+
+    const handleExport = async (vendor) => {
+        const resp = axiosConfig.get(
+            `/vendorsalesbyvendorid/${selectedEvent}/vendor/${vendor}`
+        );
+        const res = (await resp).data.data;
+        const worksheet = XLSX.utils.json_to_sheet(res);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+        const excelBuffer = XLSX.write(workbook, {
+            bookType: "xlsx",
+            type: "array",
+        });
+        const blob = new Blob([excelBuffer], {
+            type: "application/octet-stream",
+        });
+        saveAs(blob, `${vendor}.xlsx`);
     };
     return (
         <div className="container">
@@ -47,13 +71,14 @@ const Vendorsales = () => {
             <div>
                 {salesReport.length > 0 ? (
                     <div>
-                        <table className="table table-condensed table-hover table-sm">
+                        <table className="table table-hover">
                             <thead className="table-info">
                                 <tr>
                                     <th>Vendor</th>
                                     <th className="text-end">
                                         Total Sales (RM)
                                     </th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody className="small">
@@ -63,6 +88,16 @@ const Vendorsales = () => {
                                             <td>{sales.organization}</td>
                                             <td className="text-end">
                                                 {sales.total}
+                                            </td>
+                                            <td className="d-flex align-items-center">
+                                                <button
+                                                    className="btn btn-info"
+                                                    onClick={() =>
+                                                        handleExport(sales.id)
+                                                    }
+                                                >
+                                                    Export To Excel
+                                                </button>
                                             </td>
                                         </tr>
                                     );
