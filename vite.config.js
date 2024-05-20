@@ -6,6 +6,19 @@ export default defineConfig({
     build: {
         minify: process.env.APP_ENV === "production" ? "esbuild" : false,
         cssMinify: process.env.APP_ENV === "production",
+        rollupOptions: {
+            output: {
+                manualChunks(id) {
+                    if (id.includes("node_modules")) {
+                        return id
+                            .toString()
+                            .split("node_modules/")[1]
+                            .split("/")[0]
+                            .toString();
+                    }
+                },
+            },
+        },
     },
     plugins: [
         laravel({

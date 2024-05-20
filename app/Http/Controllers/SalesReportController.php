@@ -56,6 +56,8 @@ class SalesReportController extends Controller
                 ->where('event_orders.status', 2)
                 ->whereDate('event_orders.created', $salesDate)
                 ->selectRaw('products.id, products.product_name, vendors.organization, event_order_products.quantity, event_order_products.total, event_order_payment_details.payment_ref, event_order_payment_details.payment_method, event_order_payment_details.issuing_bank')
+                ->groupBy('products.id', 'products.product_name', 'vendors.organization', 'event_order_products.quantity', 'event_order_products.total', 'event_order_payment_details.payment_ref', 'event_order_payment_details.payment_method', 'event_order_payment_details.issuing_bank')
+                ->orderBy('event_orders.created', 'ASC')
                 ->get();
         }
 
@@ -75,6 +77,7 @@ class SalesReportController extends Controller
                 ->whereDate('event_orders.created', $salesDate)
                 ->selectRaw('products.id, products.product_name, vendors.organization, sum(event_order_products.quantity) as quantity, sum(event_order_products.total) as sales, event_orders.created')
                 ->groupBy('products.id', 'products.product_name', 'vendors.organization', 'event_orders.created')
+                ->orderBy('event_orders.created', 'ASC')
                 ->get();
         }
 
@@ -110,6 +113,7 @@ class SalesReportController extends Controller
                 ->where('events_products.events_id', $event_id)
                 ->where('event_orders.status', 2)
                 ->groupBy('vendors.id', 'vendors.organization')
+                ->orderBy('vendors.organization', 'ASC')
                 ->get();
 
             return $sales;
@@ -126,7 +130,8 @@ class SalesReportController extends Controller
             ->where('vendors.id', $vendor)
             ->where('events_products.events_id', $event)
             ->where('event_orders.status', 2)
-            ->get(['products.product_name as Product', 'event_order_products.quantity as Quantity', 'event_order_products.price as Price', 'event_order_products.total as Total']);
+            ->get(['products.product_name as Product', 'event_order_products.quantity as Quantity', 'event_order_products.price as Price', 'event_order_products.total as Total'])
+            ->orderBy('products.product_name', 'ASC');
 
         return $data;
     }
