@@ -21,7 +21,8 @@ class AuthController extends Controller
             'password' => $request->password,
         ];
         if (Auth::attempt($credetials)) {
-            return redirect('/home')->with('success', 'Login Successful');
+            $headers = ['Accept' => 'application/json'];
+            return redirect('/home', $headers)->with('success', 'Login Successful');
         }
         return back()->with('error', 'Email or Password is incorrect');
     }
