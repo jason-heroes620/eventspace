@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Events;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Carbon
 
 class SalesReportController extends Controller
 {
@@ -131,8 +132,9 @@ class SalesReportController extends Controller
             ->where('vendors.id', $vendor)
             ->where('events_products.events_id', $event)
             ->where('event_orders.status', 2)
+            ->orderBy('event_orders.created', 'ASC')
             ->orderBy('Product', 'ASC')
-            ->get(['products.product_name as Product', 'event_order_products.quantity as Quantity', 'event_order_products.price as Price', 'event_order_products.total as Total']);
+            ->get(['products.product_name as Product', Carbon::parse('event_orders.created')->format('D/M/Y'), 'event_order_products.quantity as Quantity', 'event_order_products.price as Price', 'event_order_products.total as Total']);
 
 
         return $data;
