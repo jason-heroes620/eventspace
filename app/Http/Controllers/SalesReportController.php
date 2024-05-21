@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Events;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Carbon
 
 class SalesReportController extends Controller
 {
@@ -125,7 +124,7 @@ class SalesReportController extends Controller
     private function getVendorSalesById($event, $vendor)
     {
         $data = DB::table('event_orders')
-        ->selectRaw('products.product_name as Product, date_format(event_orders.created, "%d/%M/%Y") as Date, event_order_products.quantity as Quantity, event_order_products.price as Price, event_order_products.total as Total')
+            ->selectRaw('products.product_name as Product, date_format(event_orders.created, "%d/%M/%Y") as Date, event_order_products.quantity as Quantity, event_order_products.price as Price, event_order_products.total as Total')
             ->leftJoin('event_order_products', 'event_orders.id', '=', 'event_order_products.event_order_id')
             ->leftJoin('events_products', 'events_products.products_id', 'event_order_products.product_id')
             ->leftJoin('products', 'event_order_products.product_id', '=', 'products.id')
