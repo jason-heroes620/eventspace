@@ -136,4 +136,24 @@ class SalesReportController extends Controller
 
         return $data;
     }
+
+    public function discrepancy(Request $req)
+    {
+        $data = $this->getDiscrepancies($req->eventId);
+
+        return $this->sendResponse($data, 200);
+    }
+
+    private function getDiscrepancies($event_id)
+    {
+        $data = DB::table('event_order_discrepancies')
+            ->leftJoin('products', 'products.id', '=', 'event_order_discrepancies')
+            ->leftJoin('vendors', 'products.vendor_id', '=', 'vendors.id')
+            ->selectRaw('vendors.organization, sum(event_order_discrepancies.total) as total, sum(event_order_discrepancies.discrepancy_amount) as discrepancy')
+            ->groupBy('vendors.organization')
+            ->orderBy('vendors.organization', 'ASC')
+            ->get();
+
+        return $data;
+    }
 }

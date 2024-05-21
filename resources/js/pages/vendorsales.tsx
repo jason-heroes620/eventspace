@@ -16,6 +16,7 @@ const Vendorsales = () => {
     const [events, setEvents] = useState<Event>();
     const [selectedEvent, setSelectedEvent] = useState("");
     const [salesReport, setSalesReport] = useState([]);
+    const [discrepancy, setDiscrepancy] = useState([]);
     const [total, setTotal] = useState("0.00");
 
     useEffect(() => {
@@ -29,6 +30,10 @@ const Vendorsales = () => {
         axiosConfig.get(`/vendorsales/${event.target.value}`).then((resp) => {
             const data = resp.data.data;
             setSalesReport(data);
+        });
+
+        axiosConfig.get(`/discrepancy/${event.target.value}`).then((resp) => {
+            setDiscrepancy(resp.data.data);
         });
     };
 
@@ -71,7 +76,7 @@ const Vendorsales = () => {
             <div>
                 {salesReport.length > 0 ? (
                     <div>
-                        <table className="table table-hover">
+                        <table className="table table-hover table-sm">
                             <thead className="table-info">
                                 <tr>
                                     <th>Vendor</th>
@@ -125,6 +130,40 @@ const Vendorsales = () => {
                     </div>
                 ) : (
                     ""
+                )}
+            </div>
+            <div>
+                {discrepancy.length > 0 ? (
+                    <div>
+                        <table>
+                            <thead>
+                                <th>Vendor</th>
+                                <th className="text-end">
+                                    Amount Collected (RM)
+                                </th>
+                                <th className="text-end">Discrepancy (RM)</th>
+                            </thead>
+                            <tbody>
+                                {discrepancy.map((d) => {
+                                    return (
+                                        <tr>
+                                            <td>{d.organization}</td>
+                                            <td className="text-end">
+                                                {d.total}
+                                            </td>
+                                            <td className="text-end text-danger">
+                                                {d.discrepancy}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                ) : (
+                    <div>
+                        <span>No discrepancy found</span>
+                    </div>
                 )}
             </div>
         </div>

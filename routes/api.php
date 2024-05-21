@@ -52,5 +52,6 @@ Route::get('sales/{eventId}/date/{date}/type/{type}', [SalesReportController::cl
 
 Route::get('vendorsalesbyvendorid/{eventId}/vendor/{vendorId}', [SalesReportController::class, 'vendorsalesbyvendorid']);
 
+Route::get('discrepancy/{eventId}', [SalesReportController::class, 'discrepancy']);
 
 // Route::get('checkproductsdiscounts/{id}', [ProductsController::class, 'productsdiscounts']);
