@@ -32,6 +32,7 @@ use Intervention\Image\ImageManager;
 use App\Http\Controllers\ExcelImportController;
 use App\Http\Controllers\SalesReportController;
 use App\Models\Products;
+use Illuminate\Support\Facades\Artisan;
 
 
 
@@ -70,6 +71,11 @@ Route::group(['middleware' => 'guest'], function () {
 
     Route::get('/salesreport', [SalesReportController::class, 'salesreport'])->name('salesreport');
     Route::post('/salesreport', [SalesReportController::class, 'salesreport'])->name('salesreport');
+
+    Route::get('/clear-cache', function () {
+        Artisan::call('cache:clear');
+        return 'Application cache has been cleared';
+    });
 });
 
 Route::group(['middleware' => 'auth'], function () {
