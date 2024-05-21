@@ -131,8 +131,9 @@ class SalesReportController extends Controller
             ->where('vendors.id', $vendor)
             ->where('events_products.events_id', $event)
             ->where('event_orders.status', 2)
-            ->get(['products.product_name as Product', 'event_order_products.quantity as Quantity', 'event_order_products.price as Price', 'event_order_products.total as Total'])
-            ->orderBy('Product', 'ASC');
+            ->orderBy('Product', 'ASC')
+            ->get(['products.product_name as Product', 'event_order_products.quantity as Quantity', 'event_order_products.price as Price', 'event_order_products.total as Total']);
+
 
         return $data;
     }
