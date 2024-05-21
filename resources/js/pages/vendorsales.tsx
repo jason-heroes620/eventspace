@@ -96,7 +96,7 @@ const Vendorsales = () => {
                                             </td>
                                             <td className="d-flex align-items-center">
                                                 <button
-                                                    className="btn btn-info"
+                                                    className="btn btn-info btn-sm"
                                                     onClick={() =>
                                                         handleExport(sales.id)
                                                     }
@@ -132,11 +132,11 @@ const Vendorsales = () => {
                     ""
                 )}
             </div>
-            <div>
+            <div className="py-4">
                 {discrepancy.length > 0 ? (
                     <div>
-                        <table>
-                            <thead>
+                        <table className="table table-sm">
+                            <thead className="table-info">
                                 <th>Vendor</th>
                                 <th className="text-end">
                                     Amount Collected (RM)
