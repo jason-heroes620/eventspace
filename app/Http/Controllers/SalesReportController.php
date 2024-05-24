@@ -48,17 +48,26 @@ class SalesReportController extends Controller
         $sales = array();
 
         if ($salesDate) {
+            // $sales = DB::table('event_orders')
+            //     ->leftJoin('event_order_products', 'event_orders.id', '=', 'event_order_products.event_order_id')
+            //     ->leftJoin('event_order_payment_details', 'event_orders.id', '=', 'event_order_payment_details.event_order_id')
+            //     ->leftJoin('products', 'products.id', '=', 'event_order_products.product_id')
+            //     ->leftJoin('vendors', 'vendors.id', '=', 'products.vendor_id')
+            //     ->where('event_orders.status', 2)
+            //     ->whereDate('event_orders.created', $salesDate)
+            //     ->where('event_order_payment_details.status', 2)
+            //     ->selectRaw('products.id, products.product_name, vendors.organization, event_order_products.quantity, event_order_products.total, event_order_payment_details.payment_ref, event_order_payment_details.payment_method, event_order_payment_details.issuing_bank, event_orders.created')
+            //     ->groupBy('products.id', 'products.product_name', 'vendors.organization', 'event_order_products.quantity', 'event_order_products.total', 'event_order_payment_details.payment_ref', 'event_order_payment_details.payment_method', 'event_order_payment_details.issuing_bank', 'event_orders.created')
+            //     ->orderBy('event_orders.created', 'ASC')
+            //     ->get();
             $sales = DB::table('event_orders')
-                ->leftJoin('event_order_products', 'event_orders.id', '=', 'event_order_products.event_order_id')
                 ->leftJoin('event_order_payment_details', 'event_orders.id', '=', 'event_order_payment_details.event_order_id')
-                ->leftJoin('products', 'products.id', '=', 'event_order_products.product_id')
-                ->leftJoin('vendors', 'vendors.id', '=', 'products.vendor_id')
                 ->where('event_orders.status', 2)
                 ->whereDate('event_orders.created', $salesDate)
                 ->where('event_order_payment_details.status', 2)
-                ->selectRaw('products.id, products.product_name, vendors.organization, event_order_products.quantity, event_order_products.total, event_order_payment_details.payment_ref, event_order_payment_details.payment_method, event_order_payment_details.issuing_bank, event_orders.created')
-                ->groupBy('products.id', 'products.product_name', 'vendors.organization', 'event_order_products.quantity', 'event_order_products.total', 'event_order_payment_details.payment_ref', 'event_order_payment_details.payment_method', 'event_order_payment_details.issuing_bank', 'event_orders.created')
-                ->orderBy('event_orders.created', 'ASC')
+                ->selectRaw('event_orders.id, event_orders.total, event_order_payment_details.payment_ref, event_order_payment_details.payment_method, event_order_payment_details.issuing_bank, event_orders.created')
+                ->groupBy('event_orders.id', 'event_orders.total', 'event_order_payment_details.payment_ref', 'event_order_payment_details.payment_method', 'event_order_payment_details.issuing_bank', 'event_orders.created')
+                ->orderBy('event_orders.created', 'DESC')
                 ->get();
         }
 

@@ -137,11 +137,15 @@ const Vendorsales = () => {
                     <div>
                         <table className="table table-sm">
                             <thead className="table-info">
-                                <th>Vendor</th>
-                                <th className="text-end">
-                                    Amount Collected (RM)
-                                </th>
-                                <th className="text-end">Discrepancy (RM)</th>
+                                <tr>
+                                    <th>Vendor</th>
+                                    <th className="text-end">
+                                        Amount Collected (RM)
+                                    </th>
+                                    <th className="text-end">
+                                        Discrepancy (RM)
+                                    </th>
+                                </tr>
                             </thead>
                             <tbody>
                                 {discrepancy.map((d) => {
