@@ -304,7 +304,7 @@ class EventPaymentController extends Controller
     //         ->first(["booths.id"]);
     //     $booth = EventBooth::where("event_id", $application->event_id)->where('booth_id', $event_booths->id)->first();
 
-    //     $token = 'eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjM0ODA5NDQzMCwiYWFpIjoxMSwidWlkIjoyNTk3MzUyMSwiaWFkIjoiMjAyNC0wNC0xN1QwNDowODo1MC4wMDBaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MTA0MzIzNTUsInJnbiI6InVzZTEifQ.-HHtAXfVR46gAFuic8jMK5DLB2CMone00q8qZ6ydlGE';
+    //     $token = config('custom.monday_token');
     //     $apiUrl = 'https://api.monday.com/v2';
 
     //     $query = 'mutation ($item_name:String!, $columnVals: JSON!){ create_item (board_id: 6461771278, group_id: "topics", item_name: $item_name, column_values: $columnVals) { id } }';

@@ -55,7 +55,6 @@ const Dailysales = () => {
         axiosConfig
             .get(`/sales/${selectedEvent}/date/${selectedDate}/type/${report}`)
             .then((resp) => {
-                console.log(resp.data.data);
                 setSales(resp.data.data);
             });
     };
