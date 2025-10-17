@@ -286,7 +286,7 @@ class EventApplicationsController extends Controller
         $token = config('custom.monday_token');
         $apiUrl = 'https://api.monday.com/v2';
 
-        $query = 'mutation ($item_name:String!, $columnVals: JSON!){ create_item (board_id: 18163304314, group_id: "topics", item_name: $item_name, column_values: $columnVals) { id } }';
+        $query = 'mutation ($item_name:String!, $columnVals: JSON!){ create_item (board_id:' . $event->monday_board_id . ', group_id: "topics", item_name: $item_name, column_values: $columnVals) { id } }';
         $date = new DateTime($application->created);
         $date->setTimezone(new DateTimeZone('UTC'));
         $vals = [
