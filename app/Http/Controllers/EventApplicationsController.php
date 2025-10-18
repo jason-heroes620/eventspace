@@ -40,7 +40,7 @@ class EventApplicationsController extends Controller
 
             return view('application-detail', ['application' => $application[0], 'categories' => $categories, 'booth' => $booth, 'booth_price' => $event_booth->display_price, 'total' => $total, 'payment' => $application[2], 'payment_detail' => $application[3], 'page' => $application[1], 'eventId' => $req->event]);
         } else {
-            $events = Events::where('status', 0)->get();
+            $events = Events::all();
             $event = '';
             if (isset($req->eventId)) {
                 $applications = DB::table('event_applications')
