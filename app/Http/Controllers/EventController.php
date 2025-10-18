@@ -10,12 +10,12 @@ class EventController extends Controller
     public function events(Request $req)
     {
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            if(isset($req->id)) {
+            if (isset($req->id)) {
                 $data = $this->getEventById($req->id);
-            }else {
+            } else {
                 $data = $this->getEvents();
             }
-            
+
             return $this->sendResponse($data, 200);
         } else {
             return $this->sendError('', ['error' => 'Allowed headers GET'], 405);
@@ -27,7 +27,8 @@ class EventController extends Controller
         return Events::where("status", 0)->orderBy("id")->get();
     }
 
-    private function getEventById($id) {
-        return Events::where("status", 0)->where("id", $id)->first();
+    private function getEventById($id)
+    {
+        return Events::where("id", $id)->first();
     }
 }
