@@ -12,5 +12,5 @@ use Illuminate\Support\Facades\Schedule;
 Schedule::command('app:compress-image')->everyMinute();
 
 Schedule::command('queue:work --stop-when-empty')
-    ->everyFiveMinute()
+    ->everyFiveMinutes()
     ->between('8:00', '18:00');
