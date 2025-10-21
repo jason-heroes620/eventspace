@@ -13,6 +13,7 @@ use App\Http\Controllers\EventOrdersController;
 // use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\SalesReportController;
 use App\Http\Controllers\TermsAndConditionsController;
+use Illuminate\Support\Facades\Artisan;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -55,3 +56,7 @@ Route::get('vendorsalesbyvendorid/{eventId}/vendor/{vendorId}', [SalesReportCont
 Route::get('discrepancy/{eventId}', [SalesReportController::class, 'discrepancy']);
 
 // Route::get('checkproductsdiscounts/{id}', [ProductsController::class, 'productsdiscounts']);
+
+Route::get('run-schedule', function () {
+    Artisan::call("schedule:run");
+});

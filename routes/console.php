@@ -10,3 +10,7 @@ use Illuminate\Support\Facades\Schedule;
 // })->purpose('Display an inspiring quote')->hourly();
 
 Schedule::command('app:compress-image')->everyMinute();
+
+Schedule::command('queue:work --stop-when-empty')
+    ->everyFiveMinute()
+    ->between('8:00', '18:00');
