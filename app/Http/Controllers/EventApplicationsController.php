@@ -95,7 +95,7 @@ class EventApplicationsController extends Controller
         $info->plug = $application['plugPoints'] == 'Yes' ? 'Y' : 'N';
         $info->booth_id = $application['boothId'];
         $info->booth_qty = $application['noOfBooth'];
-        $info->no_of_days = $this->getEventDays($application['eventId']);
+        $info->no_of_days = $application['noOfDays'] ?? $this->getEventDays($application['eventId']);
 
         $application_code =
             $this->getApplicationCode(6);

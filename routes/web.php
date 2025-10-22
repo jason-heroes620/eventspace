@@ -345,15 +345,15 @@ Route::get('/testHandleMondayMutation/{id}', function (string $application_id) {
     }
 });
 
-Route::get("/random", function () {
-    $n = 6;
-    $characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    $randomString = '';
+// Route::get("/random", function () {
+//     $n = 6;
+//     $characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+//     $randomString = '';
 
-    for ($i = 0; $i < $n; $i++) {
-        $index = rand(0, strlen($characters) - 1);
-        $randomString .= $characters[$index];
-    }
+//     for ($i = 0; $i < $n; $i++) {
+//         $index = rand(0, strlen($characters) - 1);
+//         $randomString .= $characters[$index];
+//     }
 
-    echo $randomString;
-});
+//     echo $randomString;
+// });
