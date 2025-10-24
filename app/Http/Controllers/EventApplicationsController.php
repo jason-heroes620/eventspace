@@ -104,12 +104,14 @@ class EventApplicationsController extends Controller
         $info->save();
         $id = $info->id;
 
-        foreach ($application['categoryId'] as $cat) {
-            $application_categories = new ApplicationCategories;
-            $application_categories->application_id = $id;
-            $application_categories->category_id = $cat;
+        if (isset($application['categoryId'])) {
+            foreach ($application['categoryId'] as $cat) {
+                $application_categories = new ApplicationCategories;
+                $application_categories->application_id = $id;
+                $application_categories->category_id = $cat;
 
-            $application_categories->save();
+                $application_categories->save();
+            }
         }
 
         try {
@@ -271,10 +273,16 @@ class EventApplicationsController extends Controller
             ->where('event_applications.id', $application_id)
             ->get(['categories.id']);
         $categories = [];
+
+
         foreach ($application_categories as $cat) {
-            $id = EventCategories::where('event_id', $application->event_id)->where('category_id', $cat->id)->first(['monday_category_id']);
-            $categories[] = $id->monday_category_id;
+            Log::info($cat->id);
+            if ($cat->id != null && $cat->id !== '') {
+                $id = EventCategories::where('event_id', $application->event_id)->where('category_id', $cat->id)->first(['monday_category_id']);
+                $categories[] = $id->monday_category_id;
+            }
         }
+
 
         $event_booths = DB::table("event_applications")
             ->leftJoin("booths", "event_applications.booth_id", '=', "booths.id")
@@ -289,13 +297,15 @@ class EventApplicationsController extends Controller
         $query = 'mutation ($item_name:String!, $columnVals: JSON!){ create_item (board_id:' . $event->monday_board_id . ', group_id: "topics", item_name: $item_name, column_values: $columnVals) { id } }';
         $date = new DateTime($application->created);
         $date->setTimezone(new DateTimeZone('UTC'));
+
+        Log::info('categories' . count($categories));
         $vals = [
             "item_name" => $application->organization,
             "columnVals" => json_encode(
                 [
                     "status" => ["label" => "Pending"],
                     "date4" => ['date' => $date->format('Y-m-d'), 'time' => $date->format('H:i:s')],
-                    "product_category__1" => ["ids" => $categories],
+                    "product_category__1" => ["ids" => count($categories) > 0 ? $categories : [14]],
                     "text" => $application->contact_person,
                     "phone" => ["phone" => $application->contact_no, "countryShortName" => "MY"],
                     "email" => ["email" => $application->email, "text" => $application->email],
@@ -317,7 +327,8 @@ class EventApplicationsController extends Controller
         try {
             $guzzleClient = new Client(array('headers' => array('Content-Type' => 'application/json', 'Authorization' => $token)));
             $responseContent = $guzzleClient->post($apiUrl, ['body' =>  json_encode(['query' => $query, 'variables' => $vals])]);
-
+            Log::info($query);
+            Log::info($vals);
             $data = json_decode($responseContent->getBody()->getContents());
             if (isset($data->error_message)) {
                 $error = new ApplicationError();
@@ -325,6 +336,7 @@ class EventApplicationsController extends Controller
                 $error->error_message = $data->error_message;
                 $error->save();
             } else {
+                Log::info($responseContent->getBody());
                 $id = $data->data->create_item->id;
                 // DB::table('event_applications')
                 //     ->update(
