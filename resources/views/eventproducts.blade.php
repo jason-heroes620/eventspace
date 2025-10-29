@@ -67,7 +67,7 @@
         <div class="d-flex justify-content-start flex-row gap-2">
             @foreach($shorts as $short)
             <div class="row">
-                <form action="{{ route('eventproducts', ['eventId' => $eventId, 's' => $short->product_short]) }}" method="POST">
+                <form action="{{ route('eventproducts.store', ['eventId' => $eventId, 's' => $short->product_short]) }}" method="POST">
                     @csrf
                     <input hidden type="text" name="short" class="form-control" id="short" value="{{ $short->product_short }}">
                     @if($s == $short->product_short)

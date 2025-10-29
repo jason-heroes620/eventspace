@@ -21,7 +21,7 @@
     </div>
     <p></p>
     <div>
-        <p> To finalise your participation, please make a full payment for the retail display fee by [{{ date('F d, Y'), strtotime($due_date) }}]. You can submit payment through the following:</p>
+        <p> To finalise your participation, please make a full payment for the retail display fee by [{{ date('F d, Y', strtotime($due_date)) }}]. You can submit payment through the following:</p>
     </div>
     <p></p>
     <div>

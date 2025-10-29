@@ -78,7 +78,14 @@
                 <span class="col-12 col-md-4"><strong>No. of Days</strong></span>
                 <span class="col-12 col-md-8 py-2 border">{{ $application->no_of_days }}</span>
             </div>
+
+            @if($application->discount)
             <div class="row py-2">
+                <span class="col-12 col-md-4 text-red-500"><strong>Discount (RM)</strong></span>
+                <span class="col-12 col-md-8 py-2 border">{{ number_format((float)$application->discount_value, '2','.',',') }}</span>
+            </div>
+            @endif
+                <div class="row py-2">
                 <span class="col-12 col-md-4"><strong>Total (RM)</strong></span>
                 <span class="col-12 col-md-8 py-2 border">{{ number_format((float)$total, '2','.',',') }}</span>
             </div>
@@ -104,6 +111,10 @@
             <span class="col-12 col-md-4"><strong>Payment ID</strong></span>
             <span class="col-12 col-md-8 py-2 border">{{ $payment->id }}</span>
         </div>
+        <div class="row py-2">
+            <span class="col-12 col-md-4"><strong>Reference No.</strong></span>
+            <span class="col-12 col-md-8 py-2 border">{{ $payment->reference_no }}</span>
+        </div>
         @if($payment_detail)
         <div class="row py-2">
             <span class="col-12 col-md-4"><strong>Payment Total (RM)</strong></span>
@@ -121,6 +132,12 @@
         <div class="row py-2">
             <span class="col-12 col-md-4"><strong>Total (RM)</strong></span>
             <span class="col-12 col-md-8 py-2 border">{{ number_format((float)$payment->payment_total, '2','.',',') }}</span>
+        </div>
+        @endif
+        @if($payment->path)
+        <div class="row py-2">
+            <span class="col-12 col-md-4"><strong>Payment Reference</strong></span>
+            <a href={{ $payment->path }} target="_blank"  class="col-12 col-md-8 py-2">View File</a>
         </div>
         @endif
     </div>

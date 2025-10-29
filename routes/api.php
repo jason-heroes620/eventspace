@@ -34,6 +34,9 @@ Route::post('payment', [EventPaymentController::class, 'payment']);
 Route::get('payment/{id?}', [EventPaymentController::class, 'payment']);
 Route::get('makepayment/{id?}/code/{code?}', [EventPaymentController::class, 'paymentCode']);
 
+Route::get('payment-reference/{code?}', [EventPaymentController::class, 'paymentReference']);
+Route::post('payment-reference/{code?}', [EventPaymentController::class, 'paymentReferenceUpdate']);
+
 Route::post('EGHLPaymentCallback', [EventPaymentController::class, 'eghlpaymentcallback']);
 Route::get('EGHLPaymentCallback', [EventPaymentController::class, 'eghlpaymentcallback']);
 

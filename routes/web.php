@@ -13,6 +13,7 @@ use App\Models\EventBooth;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\EventApplicationsController;
+use App\Http\Controllers\EventBoothController;
 use App\Http\Controllers\EventOrdersController;
 use App\Http\Controllers\EventProductsController;
 use App\Http\Controllers\ProductsController;
@@ -31,6 +32,7 @@ use Intervention\Image\ImageManager;
 
 use App\Http\Controllers\ExcelImportController;
 use App\Http\Controllers\SalesReportController;
+use App\Mail\ApplicationApprovedResponse;
 use App\Models\Products;
 use Illuminate\Support\Facades\Artisan;
 
@@ -43,18 +45,18 @@ Route::get('/', function () {
 
 Route::group(['middleware' => 'guest'], function () {
     Route::get('/register', [AuthController::class, 'register'])->name('register');
-    Route::post('/register', [AuthController::class, 'registerPost'])->name('register');
+    Route::post('/register', [AuthController::class, 'registerPost']);
 
-    Route::get('/login', [AuthController::class, 'login'])->name('login');
+    Route::get('/login', [AuthController::class, 'login']);
     Route::post('/login', [AuthController::class, 'loginPost'])->name('login');
 
-    Route::get('/vendors', [VendorsController::class, 'index'])->name('vendors');
-    Route::get('/vendor/{id}', [VendorsController::class, 'index'])->name('vendor');
-    Route::post('/vendor/{id}', [VendorsController::class, 'index'])->name('vendor');
-    Route::post('/vendors', [VendorsController::class, 'index'])->name('vendors');
+    Route::get('/vendors', [VendorsController::class, 'index']);
+    Route::get('/vendor/{id}', [VendorsController::class, 'index']);
+    Route::post('/vendor/{id}', [VendorsController::class, 'index']);
+    Route::post('/vendors', [VendorsController::class, 'index']);
 
     Route::get('/eventproducts', [EventProductsController::class, 'eventproducts'])->name('eventproducts');
-    Route::post('/eventproducts', [EventProductsController::class, 'eventproducts'])->name('eventproducts');
+    Route::post('/eventproducts', [EventProductsController::class, 'eventproducts'])->name('eventproducts.store');
 
     Route::get('products', [ProductsController::class, 'index'])->name('products');
     Route::get('products/{id}', [ProductsController::class, 'index'])->name('product-detail');
@@ -70,7 +72,7 @@ Route::group(['middleware' => 'guest'], function () {
     Route::post('/import', [ExcelImportController::class, 'import'])->name('excel.import');
 
     Route::get('/salesreport', [SalesReportController::class, 'salesreport'])->name('salesreport');
-    Route::post('/salesreport', [SalesReportController::class, 'salesreport'])->name('salesreport');
+    Route::post('/salesreport', [SalesReportController::class, 'salesreport']);
 
     Route::get('/clear-cache', function () {
         Artisan::call('cache:clear');
@@ -88,7 +90,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/applications/{id}', [EventApplicationsController::class, 'updateStatus'])->name('updateStatus');
 
     Route::get('/dailysales', [SalesReportController::class, 'dailysales'])->name('dailysales');
-    Route::post('/dailysales', [SalesReportController::class, 'dailysales'])->name('dailysales');
+    Route::post('/dailysales', [SalesReportController::class, 'dailysales']);
 
     Route::get('/vendorsales', [SalesReportController::class, 'vendorsales'])->name('vendorsales');
 
@@ -342,6 +344,33 @@ Route::get('/testHandleMondayMutation/{id}', function (string $application_id) {
         // echo $data->data->create_item->id;
     } catch (Exception $ex) {
         echo $ex;
+    }
+});
+
+Route::get('/test-approve-mail', function () {
+    $application_id = 68;
+    $application = EventApplications::where('id', $application_id)
+        ->first();
+    $event = Events::where('id', $application->event_id)->first();
+    $link = 'http://localhost:5174/payment/' . $application->application_code;
+    $application->reference_link = 'http://localhost:5174/payment-reference/' . $application->application_code;
+
+    $event_booth = (new EventBoothController)->getEventBoothPriceById($application->event_id, $application->booth_id);
+    $total = (float)((int)$application->booth_qty * (int)$application->no_of_days * (int)$event_booth->price);
+    Log::info("total");
+    Log::info($total);
+    if ($application->discount) {
+        Log::info('discount' . $application->discount_value);
+        $total -= $application->discount_value;
+        Log::info($total);
+    }
+    $application->payment = number_format($total, 2, '.', '');
+
+    try {
+        Mail::to("jason820620@gmail.com")
+            ->send(new ApplicationApprovedResponse($event, $application, $link));
+    } catch (Throwable $ex) {
+        Log::error($ex);
     }
 });
 

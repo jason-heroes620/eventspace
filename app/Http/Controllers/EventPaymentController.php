@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\PaymentReceived;
 use App\Mail\PaymentNotification;
 use App\Models\EventApplications;
+use Exception;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -349,4 +350,92 @@ class EventPaymentController extends Controller
     //         $error->save();
     //     }
     // }
+
+    public function paymentReference(Request $request, $code)
+    {
+        $application = EventApplications::select('id', 'event_id', 'organization', 'contact_person', 'contact_no', 'email', 'booth_qty', 'booth_id', 'no_of_days', 'discount_value', 'discount')
+            ->where('application_code', $code)->first();
+
+        $event = Events::select('event_name', 'event_date')
+            ->where('id', $application->event_id)->first();
+
+        $booth = EventBooth::select('price', 'booth_type')
+            ->leftJoin('booths', 'booths.id', 'events_booths.booth_id')
+            ->where('events_booths.booth_id', $application->booth_id)->first();
+        $payment = $application->no_of_days * $application->booth_qty * $booth->price;
+        if ($application->discount) {
+            $payment -= $application->discount_value;
+        }
+
+        return response()->json(compact('application', 'booth', 'event', 'payment'));
+    }
+
+    public function paymentReferenceUpdate(Request $request, $code)
+    {
+        $application = EventApplications::where('application_code', $code)->first();
+        $event = Events::where('id', $application->event_id)->first();
+        $file = "";
+
+        $data = $request->all();
+        if ($request->hasFile('reference')) {
+            $file = $request->file('reference');
+            $data['payment_reference'] = $file->store('payment_reference', 'public');
+        }
+
+        try {
+            $payment = EventPayments::updateOrCreate(
+                ['application_id' => $application->id],
+                [
+                    'application_id' => $application->id,
+                    'payment_total' => $data['payment_total'],
+                    'reference_no' => $data['reference_no'],
+                    'payment_reference' => $data['payment_reference'],
+                    'status' => 2,
+                    'application_code' => $code
+                ]
+            );
+
+            $token = config('custom.monday_token');
+            $apiUrl = 'https://api.monday.com/v2/file';
+
+            $query = 'mutation ($file:File!){ add_file_to_column (item_id: ' . $application->monday_id . ', column_id: "files3__1", file: $file) { id } }';
+            Log::info($query);
+
+            $multipartData = [
+                [
+
+                    'name'     => 'variables[file]',
+                    'contents' => fopen($file->getPathname(), 'r'), // Open the file as a stream
+                    'filename' => $file->getClientOriginalName(), // Original filename
+                    'Mime-Type' => $file->getMimeType(), // Mime type of the file
+                ],
+                [
+                    'name' => 'query',
+                    'contents' => $query
+                ]
+            ];
+            try {
+                $guzzleClient = new Client(array('headers' => array('Authorization' => $token)));
+                $responseContent = $guzzleClient->post($apiUrl, ['multipart' => $multipartData]);
+
+                $data = json_decode($responseContent->getBody());
+                if (!empty($data->error_message)) {
+                    $error = new PaymentEntryError();
+                    $error->payment_id = $payment->id;
+                    $error->error = $data->error_message;
+                    $error->save();
+                }
+            } catch (Throwable $ex) {
+                $error = new PaymentEntryError();
+
+                $error->payment_id = $payment->id;
+                $error->error = $ex;
+                $error->save();
+            }
+            return response()->json(["success", "Payment reference has been received"], 200);
+        } catch (Exception $e) {
+            Log::error($e);
+            return response()->json(["error", "Error saving payment reference, please try again."], 400);
+        }
+    }
 }

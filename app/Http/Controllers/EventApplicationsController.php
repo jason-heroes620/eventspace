@@ -38,6 +38,10 @@ class EventApplicationsController extends Controller
             $booth_price = number_format((float)($event_booth->price), 2, '.', '');
             $total = number_format((float)((int)$application[0]->booth_qty * (int)$application[0]->no_of_days * (int)$event_booth->price), 2, '.', '');
 
+            if ($application[0]->discount) {
+                $total -= $application[0]->discount_value;
+            }
+
             return view('application-detail', ['application' => $application[0], 'categories' => $categories, 'booth' => $booth, 'booth_price' => $event_booth->display_price, 'total' => $total, 'payment' => $application[2], 'payment_detail' => $application[3], 'page' => $application[1], 'eventId' => $req->event]);
         } else {
             $events = Events::all();
@@ -129,9 +133,17 @@ class EventApplicationsController extends Controller
     {
         $result = EventApplications::where('id', $id)->first();
         $payment = EventPayments::where('application_id', $id)->first();
+
+        if ($payment && $payment->payment_reference) {
+            $payment['path'] =  asset('storage/' . $payment->payment_reference);
+        }
+
         $detail = array();
-        if ($payment && $payment->status == '2') {
-            $detail = PaymentDetail::where('payment_id', $payment->id)->orderBy('created', 'DESC')->first();
+        if ($payment && $payment->status == 2) {
+            $detail = PaymentDetail::where('payment_id', $payment->id)
+                ->orderBy('created', 'DESC')
+                ->first();
+            Log::info($detail);
         }
 
         if ($page) {
@@ -184,16 +196,6 @@ class EventApplicationsController extends Controller
         }
 
         try {
-            // $event_applications = EventApplications::find($application_id);
-            // $event_applications->status = $status->status;
-            // $event_applications->save();
-            // DB::table('event_applications')
-            //     ->update(
-            //         [
-            //             'id' => $application_id
-            //         ],
-            //         ['status' => $status->status]
-            //     );
             DB::table('event_applications')
                 ->where('id', $application_id)
                 ->update(['status' => $status->status]);
@@ -210,6 +212,11 @@ class EventApplicationsController extends Controller
                 $event_booth = (new EventBoothController)->getEventBoothPriceById($application->event_id, $application->booth_id);
                 $total = number_format((float)((int)$application->booth_qty * (int)$application->no_of_days * (int)$event_booth->price), 2, '.', '');
 
+                if ($application->discount) {
+                    $total -= $application->discount_value;
+                }
+                $application->payment = $total;
+
                 $payment = new EventPayments();
                 $payment->application_id = $application->id;
                 $payment->application_code = $application->application_code;
@@ -219,6 +226,7 @@ class EventApplicationsController extends Controller
 
                 $id = $payment->id;
                 $payment_link = config('custom.payment_redirect_host') . "/payment/" . $id . "/code/" . $application->application_code;
+                $application->reference_link = config('custom.payment_redirect_host') . "/payment-reference/" . $application->application_code;
                 // send successful email
                 $this->sendNotificationEmail($status->status, $event, $application, $payment_link);
             }

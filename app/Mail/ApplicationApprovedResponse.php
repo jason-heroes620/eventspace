@@ -11,6 +11,7 @@ use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use App\Models\Events;
 use App\Models\EventApplications;
+use Illuminate\Support\Facades\Log;
 
 class ApplicationApprovedResponse extends Mailable
 {
@@ -23,8 +24,7 @@ class ApplicationApprovedResponse extends Mailable
         protected Events $event,
         protected EventApplications $application,
         protected $payment_link
-    ) {
-    }
+    ) {}
 
     /**
      * Get the message envelope.
@@ -41,8 +41,9 @@ class ApplicationApprovedResponse extends Mailable
      */
     public function content(): Content
     {
+        Log::info('due date' . $this->event->due_date);
         return new Content(
-            view: 'mails.application-approved',
+            view: 'mails.application-approvedv2',
             with: [
                 'contact_person' => $this->application->contact_person,
                 'event_name' => $this->event->event_name,
@@ -50,7 +51,9 @@ class ApplicationApprovedResponse extends Mailable
                 'location' => $this->event->event_location,
                 'venue' => $this->event->venue,
                 'due_date' => $this->event->due_date,
-                'payment_link' => $this->payment_link
+                'payment_link' => $this->payment_link,
+                'payment' => $this->application->payment,
+                'upload_reference_link' => $this->application->reference_link
             ]
         );
     }
