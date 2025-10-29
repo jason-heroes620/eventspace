@@ -23,7 +23,9 @@ class ApplicationApprovedResponse extends Mailable
     public function __construct(
         protected Events $event,
         protected EventApplications $application,
-        protected $payment_link
+        protected $payment_link,
+        protected $total,
+        protected $reference_link,
     ) {}
 
     /**
@@ -41,7 +43,6 @@ class ApplicationApprovedResponse extends Mailable
      */
     public function content(): Content
     {
-        Log::info('due date' . $this->event->due_date);
         return new Content(
             view: 'mails.application-approvedv2',
             with: [
@@ -52,8 +53,8 @@ class ApplicationApprovedResponse extends Mailable
                 'venue' => $this->event->venue,
                 'due_date' => $this->event->due_date,
                 'payment_link' => $this->payment_link,
-                'payment' => $this->application->payment,
-                'upload_reference_link' => $this->application->reference_link
+                'payment' => $this->total,
+                'upload_reference_link' => $this->reference_link
             ]
         );
     }

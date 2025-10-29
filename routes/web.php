@@ -137,242 +137,204 @@ Route::group(['middleware' => 'auth'], function () {
     // Route::view('/{any?}', 'dashboard')->where('any', '.*');
 });
 
-Route::get('/test-image', function () {
-    $manager = new ImageManager(
-        new Intervention\Image\Drivers\Gd\Driver()
-    );
-    $products = DB::table('products')->where('compressed_product_image', null)->where('product_image', '!=', '')->orderBy('product_name')->get();
+// Route::get('/test-image', function () {
+//     $manager = new ImageManager(
+//         new Intervention\Image\Drivers\Gd\Driver()
+//     );
+//     $products = DB::table('products')->where('compressed_product_image', null)->where('product_image', '!=', '')->orderBy('product_name')->get();
 
-    foreach ($products as $product) {
-        // dd($product);
-        print_r($product->product_name . '<br />');
-        $image = asset('storage') . '/img/' . $product->product_image;
-        $image_name = explode('/', $image);
-        //dd($image_name);
-        // dd($image_name);
-        $path = '/public/img/' . $image_name[sizeof($image_name) - 2] . '/compressed/';
-        // dd($path);
-        try {
-            if (!Storage::exists($path)) {
-                Storage::makeDirectory($path);
-            } else {
-                print_r('path exist' . '<br />');
-            }
-        } catch (Exception $ex) {
-            dd($ex);
-        }
+//     foreach ($products as $product) {
 
-        $imageM = $manager->read(public_path() . '/storage/img/' . $image_name[sizeof($image_name) - 2] . '/' . $image_name[sizeof($image_name) - 1]);
-        //$new_path = $path . 'compressed_' . $image_name[sizeof($image_name) - 1];
-        // dd(public_path());
-        $imageM->resize(300, 200, function ($const) {
-            $const->aspectRatio();
-        })->save(public_path() . '/storage/img/' . $image_name[sizeof($image_name) - 2] . '/compressed/compressed_' . $image_name[sizeof($image_name) - 1]);
+//         print_r($product->product_name . '<br />');
+//         $image = asset('storage') . '/img/' . $product->product_image;
+//         $image_name = explode('/', $image);
+//         $path = '/public/img/' . $image_name[sizeof($image_name) - 2] . '/compressed/';
+//         try {
+//             if (!Storage::exists($path)) {
+//                 Storage::makeDirectory($path);
+//             } else {
+//                 print_r('path exist' . '<br />');
+//             }
+//         } catch (Exception $ex) {
+//             dd($ex);
+//         }
 
-        DB::table('products')
-            ->where('id', $product->id)
-            ->update(['compressed_product_image' => $image_name[sizeof($image_name) - 2] . '/compressed/' . 'compressed_' . $image_name[sizeof($image_name) - 1]]);
-    }
-});
+//         $imageM = $manager->read(public_path() . '/storage/img/' . $image_name[sizeof($image_name) - 2] . '/' . $image_name[sizeof($image_name) - 1]);
+//         $imageM->resize(300, 200, function ($const) {
+//             $const->aspectRatio();
+//         })->save(public_path() . '/storage/img/' . $image_name[sizeof($image_name) - 2] . '/compressed/compressed_' . $image_name[sizeof($image_name) - 1]);
 
-Route::get('/test-mail', function () {
+//         DB::table('products')
+//             ->where('id', $product->id)
+//             ->update(['compressed_product_image' => $image_name[sizeof($image_name) - 2] . '/compressed/' . 'compressed_' . $image_name[sizeof($image_name) - 1]]);
+//     }
+// });
 
-    // $event = App\Models\Events::find(1);
-    // $payment = App\Models\EventPayments::find(8);
+// Route::get('/test-mail', function () {
+//     $application_id = 47;
 
-    // return (new PaymentReceived($event, $payment))->render();
+//     $application = EventApplications::where('id', $application_id)
+//         ->first();
+//     $event = Events::where('id', $application->event_id)->first()
+//         ->first();
+//     $email_list = ResponseEmailList::where('response_email_type', 'TE')->get();
+//     echo config("custom.payment_redirect_host");
 
-    $application_id = 47;
+//     try {
+//         Mail::to($email_list)
+//             ->send(new ApplicationReceived($event, $application));
+//     } catch (Throwable $ex) {
+//         Log::error($ex);
+//     }
+// });
 
-    $application = EventApplications::where('id', $application_id)
-        ->first();
-    $event = Events::where('id', $application->event_id)->first()
-        ->first();
-    $email_list = ResponseEmailList::where('response_email_type', 'TE')->get();
-    echo config("custom.payment_redirect_host");
+// Route::get('/send-mail', function () {
+//     $order_id = 16;
+//     $payment_info = EventPayments::where('id', $order_id)->first();
 
-    try {
-        Mail::to($email_list)
-            ->send(new ApplicationReceived($event, $application));
-    } catch (Throwable $ex) {
-        Log::error($ex);
-    }
-});
+//     $application = EventApplications::where('id', $payment_info->application_id)
+//         ->first();
+//     $event = Events::where('id', $application->event_id)->first();
+//     $booth = Booths::where('id', $application->booth_id)
+//         ->first();
 
-Route::get('/send-mail', function () {
+//     try {
+//         Mail::to($application->email)
+//             ->send(new PaymentReceived($event, $application, $booth));
+//     } catch (Throwable $ex) {
+//         Log::error($ex);
+//     }
+// });
 
-    // $event = App\Models\Events::find(1);
-    // $payment = App\Models\EventPayments::find(8);
+// Route::get('/notification-mail', function () {
 
-    // return (new PaymentReceived($event, $payment))->render();
+//     $order_id = 16;
+//     $payment_info = EventPayments::where('id', $order_id)->first();
 
-    $order_id = 16;
-    $payment_info = EventPayments::where('id', $order_id)->first();
-
-    $application = EventApplications::where('id', $payment_info->application_id)
-        ->first();
-    $event = Events::where('id', $application->event_id)->first();
-    $booth = Booths::where('id', $application->booth_id)
-        ->first();
-
-    try {
-        Mail::to($application->email)
-            ->send(new PaymentReceived($event, $application, $booth));
-    } catch (Throwable $ex) {
-        Log::error($ex);
-    }
-});
-
-Route::get('/notification-mail', function () {
-
-    // $event = App\Models\Events::find(1);
-    // $payment = App\Models\EventPayments::find(8);
-
-    // return (new PaymentNotification($event, $payment))->render();
-
-    $order_id = 16;
-    $payment_info = EventPayments::where('id', $order_id)->first();
-
-    $application = EventApplications::where('id', $payment_info->application_id)
-        ->first();
-    $event = Events::where('id', $application->event_id)->first();
+//     $application = EventApplications::where('id', $payment_info->application_id)
+//         ->first();
+//     $event = Events::where('id', $application->event_id)->first();
 
 
-    try {
-        Mail::to('purchases@heroes.my')
-            ->send(new PaymentNotification($event, $application, $payment_info));
-    } catch (Throwable $ex) {
-        Log::error($ex);
-    }
-});
+//     try {
+//         Mail::to('purchases@heroes.my')
+//             ->send(new PaymentNotification($event, $application, $payment_info));
+//     } catch (Throwable $ex) {
+//         Log::error($ex);
+//     }
+// });
 
-Route::get('/testHandleMondayMutation/{id}', function (string $application_id) {
-    $application = EventApplications::where('id', $application_id)->first();
-    $application_categories = DB::table('event_applications')
-        ->leftJoin('application_categories', 'application_categories.application_id', '=', 'event_applications.id')
-        ->leftJoin('categories', 'application_categories.category_id', '=', 'categories.id')
-        ->where('event_applications.id', $application_id)
-        ->get(['categories.id']);
-    $categories = [];
-    foreach ($application_categories as $cat) {
-        $id = EventCategories::where('event_id', $application->event_id)->where('category_id', $cat->id)->first(['monday_category_id']);
-        $categories[] = $id->monday_category_id;
-    }
+// Route::get('/testHandleMondayMutation/{id}', function (string $application_id) {
+//     $application = EventApplications::where('id', $application_id)->first();
+//     $application_categories = DB::table('event_applications')
+//         ->leftJoin('application_categories', 'application_categories.application_id', '=', 'event_applications.id')
+//         ->leftJoin('categories', 'application_categories.category_id', '=', 'categories.id')
+//         ->where('event_applications.id', $application_id)
+//         ->get(['categories.id']);
+//     $categories = [];
+//     foreach ($application_categories as $cat) {
+//         $id = EventCategories::where('event_id', $application->event_id)->where('category_id', $cat->id)->first(['monday_category_id']);
+//         $categories[] = $id->monday_category_id;
+//     }
 
-    $event_booths = DB::table("event_applications")
-        ->leftJoin("booths", "event_applications.booth_id", '=', "booths.id")
-        ->where("event_applications.id", $application_id)
-        ->first(["booths.id"]);
-    $booth = EventBooth::where("event_id", $application->event_id)->where('booth_id', $event_booths->id)->first();
-    $event = Events::where('id', $application->event_id)->first();
+//     $event_booths = DB::table("event_applications")
+//         ->leftJoin("booths", "event_applications.booth_id", '=', "booths.id")
+//         ->where("event_applications.id", $application_id)
+//         ->first(["booths.id"]);
+//     $booth = EventBooth::where("event_id", $application->event_id)->where('booth_id', $event_booths->id)->first();
+//     $event = Events::where('id', $application->event_id)->first();
 
-    $token = config('custom.monday_token');
-    $apiUrl = 'https://api.monday.com/v2';
+//     $token = config('custom.monday_token');
+//     $apiUrl = 'https://api.monday.com/v2';
 
-    $query = 'mutation ($item_name:String!, $columnVals: JSON!){ create_item (board_id: 6461771278, group_id: "topics", item_name: $item_name, column_values: $columnVals) { id } }';
-    $date = new DateTime($application->created);
-    $date->setTimezone(new DateTimeZone('UTC'));
-    $vals = [
-        "item_name" => $application->organization,
-        "columnVals" => json_encode(
-            [
-                "status" => ["label" => "Pending"],
-                "date4" => ['date' => $date->format('Y-m-d'), 'time' => $date->format('H:i:s')],
-                "product_category__1" => ["ids" => $categories],
-                "text" => $application->contact_person,
-                "phone" => ["phone" => $application->contact_no, "countryShortName" => "MY"],
-                "email" => ["email" => $application->email, "text" => $application->email],
-                "text1" => $application->organization,
-                "text9" => $application->registration,
-                "text__1" => $application->social_media_account,
-                "text3__1" => $event->event_location,
-                "event_date__1" => $event->event_date,
-                "event_time__1" => $event->event_time,
-                "numbers5" => $application->participants,
-                "numbers3" => $application->booth_qty,
-                "text98" => $application->description,
-                "label6__1" => ["index" => $booth->monday_booth_id],
-                "dropdown8__1" => $application->plug == 'Y' ? ["ids" => [1]] : ["ids" => [2]]
-            ]
-        )
-    ];
+//     $query = 'mutation ($item_name:String!, $columnVals: JSON!){ create_item (board_id: 6461771278, group_id: "topics", item_name: $item_name, column_values: $columnVals) { id } }';
+//     $date = new DateTime($application->created);
+//     $date->setTimezone(new DateTimeZone('UTC'));
+//     $vals = [
+//         "item_name" => $application->organization,
+//         "columnVals" => json_encode(
+//             [
+//                 "status" => ["label" => "Pending"],
+//                 "date4" => ['date' => $date->format('Y-m-d'), 'time' => $date->format('H:i:s')],
+//                 "product_category__1" => ["ids" => $categories],
+//                 "text" => $application->contact_person,
+//                 "phone" => ["phone" => $application->contact_no, "countryShortName" => "MY"],
+//                 "email" => ["email" => $application->email, "text" => $application->email],
+//                 "text1" => $application->organization,
+//                 "text9" => $application->registration,
+//                 "text__1" => $application->social_media_account,
+//                 "text3__1" => $event->event_location,
+//                 "event_date__1" => $event->event_date,
+//                 "event_time__1" => $event->event_time,
+//                 "numbers5" => $application->participants,
+//                 "numbers3" => $application->booth_qty,
+//                 "text98" => $application->description,
+//                 "label6__1" => ["index" => $booth->monday_booth_id],
+//                 "dropdown8__1" => $application->plug == 'Y' ? ["ids" => [1]] : ["ids" => [2]]
+//             ]
+//         )
+//     ];
 
-    try {
-        $guzzleClient = new Client(array('headers' => array('Content-Type' => 'application/json', 'Authorization' => $token)));
-        $responseContent = $guzzleClient->post($apiUrl, ['body' =>  json_encode(['query' => $query, 'variables' => $vals])]);
+//     try {
+//         $guzzleClient = new Client(array('headers' => array('Content-Type' => 'application/json', 'Authorization' => $token)));
+//         $responseContent = $guzzleClient->post($apiUrl, ['body' =>  json_encode(['query' => $query, 'variables' => $vals])]);
 
+//         $data = json_decode($responseContent->getBody()->getContents());
+//         if (isset($data->error_message)) {
+//             $error = new ApplicationError();
+//             $error->application_id = $application->id;
+//             $error->error_message = $data->error_message;
+//             $error->save();
+//         } else {
+//             $id = $data->data->create_item->id;
+//             DB::table('event_applications')
+//                 ->updateOrInsert(
+//                     [
+//                         'id' => $application_id
+//                     ],
+//                     ['monday_id' => $id]
+//                 );
+//         }
+//     } catch (Exception $ex) {
+//         echo $ex;
+//     }
+// });
 
-        // $data = @file_get_contents($apiUrl, false, stream_context_create([
-        //     'http' => [
-        //         'method' => 'POST',
-        //         'header' => $headers,
-        //         'content' => json_encode(['query' => $query, 'variables' => $vals]),
-        //     ]
-        // ]));
-        // $responseContent = json_decode($data, true);
+// Route::get('/test-approve-mail', function () {
+//     $application_id = 68;
+//     $application = EventApplications::where('id', $application_id)
+//         ->first();
+//     $event = Events::where('id', $application->event_id)->first();
+//     $link = config('custom.payment_redirect_host') . '/payment/' . $application->application_code;
+//     $application->reference_link = config('custom.payment_redirect_host') . '/payment-reference/' . $application->application_code;
 
+//     $event_booth = (new EventBoothController)->getEventBoothPriceById($application->event_id, $application->booth_id);
+//     $total = (float)((int)$application->booth_qty * (int)$application->no_of_days * (int)$event_booth->price);
+//     Log::info("total");
+//     Log::info($total);
+//     if ($application->discount) {
+//         Log::info('discount' . $application->discount_value);
+//         $total -= $application->discount_value;
+//         Log::info($total);
+//     }
+//     $application->payment = number_format($total, 2, '.', '');
 
-        // if(array_key_exists('error_message', $responseContent) || $responseContent == null) {
-        //     $error = new PaymentEntryError();
+//     try {
+//         Mail::to("jason820620@gmail.com")
+//             ->send(new ApplicationApprovedResponse($event, $application, $link, $total, $application->reference_link));
+//     } catch (Throwable $ex) {
+//         Log::error($ex);
+//     }
+// });
 
-        //     $error->payment_id = $order_id;
-        //     $error->error = array_key_exists('error_message', $responseContent) ? $responseContent['error_message'] : null;
-        //     $error->save();
-        // }
-        // $data = json_decode($responseContent->getBody());
-        // if (!empty($data->error_message)) {
-        //     echo $data->error_message;
-        // }
+// Route::get('/test-test', function () {
+//     $status = (object)array("status" => 'N', 'message' => "");
+//     $post = [];
+//     $post["status"] = "approve";
+//     $application_id = 75;
+//     (new EventApplicationsController)->setUpdateStatus($status, $post, $application_id);
+// });
 
-        $data = json_decode($responseContent->getBody()->getContents());
-        if (isset($data->error_message)) {
-            $error = new ApplicationError();
-            $error->application_id = $application->id;
-            $error->error_message = $data->error_message;
-            $error->save();
-        } else {
-            $id = $data->data->create_item->id;
-            DB::table('event_applications')
-                ->updateOrInsert(
-                    [
-                        'id' => $application_id
-                    ],
-                    ['monday_id' => $id]
-                );
-        }
-        // $data = $responseContent->getBody();
-        // echo $data->data->create_item->id;
-    } catch (Exception $ex) {
-        echo $ex;
-    }
-});
-
-Route::get('/test-approve-mail', function () {
-    $application_id = 68;
-    $application = EventApplications::where('id', $application_id)
-        ->first();
-    $event = Events::where('id', $application->event_id)->first();
-    $link = 'http://localhost:5174/payment/' . $application->application_code;
-    $application->reference_link = 'http://localhost:5174/payment-reference/' . $application->application_code;
-
-    $event_booth = (new EventBoothController)->getEventBoothPriceById($application->event_id, $application->booth_id);
-    $total = (float)((int)$application->booth_qty * (int)$application->no_of_days * (int)$event_booth->price);
-    Log::info("total");
-    Log::info($total);
-    if ($application->discount) {
-        Log::info('discount' . $application->discount_value);
-        $total -= $application->discount_value;
-        Log::info($total);
-    }
-    $application->payment = number_format($total, 2, '.', '');
-
-    try {
-        Mail::to("jason820620@gmail.com")
-            ->send(new ApplicationApprovedResponse($event, $application, $link));
-    } catch (Throwable $ex) {
-        Log::error($ex);
-    }
-});
 
 // Route::get("/random", function () {
 //     $n = 6;

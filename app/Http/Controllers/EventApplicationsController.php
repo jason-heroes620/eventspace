@@ -36,7 +36,7 @@ class EventApplicationsController extends Controller
             $booth = (new BoothController)->getBoothById($application[0]->booth_id);
             $event_booth = (new EventBoothController)->getEventBoothPriceById($application[0]->event_id, $application[0]->booth_id);
             $booth_price = number_format((float)($event_booth->price), 2, '.', '');
-            $total = number_format((float)((int)$application[0]->booth_qty * (int)$application[0]->no_of_days * (int)$event_booth->price), 2, '.', '');
+            $total = number_format((float)((int)$application[0]->booth_qty * (int)$application[0]->no_of_days * (float)$event_booth->price), 2, '.', '');
 
             if ($application[0]->discount) {
                 $total -= $application[0]->discount_value;
@@ -183,7 +183,7 @@ class EventApplicationsController extends Controller
         }
     }
 
-    private function setUpdateStatus($status, $post, $application_id)
+    public  function setUpdateStatus($status, $post, $application_id)
     {
         if ($post["status"] == 'reject') {
             $status->status = 'R';
@@ -210,12 +210,13 @@ class EventApplicationsController extends Controller
 
             if ($payment_exists && $status->status === 'A') {
                 $event_booth = (new EventBoothController)->getEventBoothPriceById($application->event_id, $application->booth_id);
-                $total = number_format((float)((int)$application->booth_qty * (int)$application->no_of_days * (int)$event_booth->price), 2, '.', '');
+                $total = number_format((float)((int)$application->booth_qty * (int)$application->no_of_days * (float)$event_booth->price), 2, '.', '');
 
                 if ($application->discount) {
                     $total -= $application->discount_value;
                 }
-                $application->payment = $total;
+                Log::info('application id ' . $application->id . ' total ' . $total);
+                $application->payment = number_format($total, 2, '.', '');
 
                 $payment = new EventPayments();
                 $payment->application_id = $application->id;
@@ -226,14 +227,17 @@ class EventApplicationsController extends Controller
 
                 $id = $payment->id;
                 $payment_link = config('custom.payment_redirect_host') . "/payment/" . $id . "/code/" . $application->application_code;
-                $application->reference_link = config('custom.payment_redirect_host') . "/payment-reference/" . $application->application_code;
+                $reference_link = config('custom.payment_redirect_host') . "/payment-reference/" . $application->application_code;
+
+                Log::info('payment_link ' . $payment_link);
+                Log::info('application->reference_link ' . $application->reference_link);
                 // send successful email
-                $this->sendNotificationEmail($status->status, $event, $application, $payment_link);
+                $this->sendNotificationEmail($status->status, $event, $application, $payment_link, $total, $reference_link);
             }
 
             if ($status->status === 'R') {
                 // send rejected email
-                $this->sendNotificationEmail($status->status, $event, $application, '');
+                $this->sendNotificationEmail($status->status, $event, $application, '', '', '');
             }
             return $status->message;
         } catch (Exception $ex) {
@@ -244,10 +248,12 @@ class EventApplicationsController extends Controller
 
     private function sendApplicationReceivedEmail($application_id)
     {
+
+        Log::info('application id' . $application_id);
         $application = EventApplications::where('id', $application_id)
             ->first();
-        $event = Events::where('id', $application->event_id)->first()
-            ->first();
+        $event = Events::where('id', $application->event_id)->first();
+        Log::info('event id' . $event);
         $email_list = ResponseEmailList::where('response_email_type', 'NA')->get();
         try {
             Mail::to($email_list)
@@ -257,12 +263,16 @@ class EventApplicationsController extends Controller
         }
     }
 
-    private function sendNotificationEmail($type, $event, $application, $payment_link)
+    private function sendNotificationEmail($type, $event, $application, $payment_link, $total, $reference_link)
     {
+        Log::info('sendNotificationEmail');
+        Log::info($application);
         try {
             if ($type === 'A') {
                 Mail::to($application->email)
-                    ->later(now()->addMinutes(5), new ApplicationApprovedResponse($event, $application, $payment_link));
+                    ->bcc("admin.test@heroes.my")
+                    ->later(now()->addMinutes(1), new ApplicationApprovedResponse($event, $application, $payment_link, $total, $reference_link));
+                // ->later(now(), new ApplicationApprovedResponse($event, $application, $payment_link, $total, $reference_link));
             } else {
                 Mail::to($application->email)
                     ->later(now()->addMinute(10), new ApplicationRejectedResponse($event, $application));
@@ -292,12 +302,15 @@ class EventApplicationsController extends Controller
         }
 
 
-        $event_booths = DB::table("event_applications")
-            ->leftJoin("booths", "event_applications.booth_id", '=', "booths.id")
-            ->where("event_applications.id", $application_id)
-            ->first(["booths.id"]);
-        $booth = EventBooth::where("event_id", $application->event_id)->where('booth_id', $event_booths->id)->first();
+        $event_booth = (new EventBoothController)->getEventBoothPriceById($application->event_id, $application->booth_id);
+        $booth = (new BoothController)->getBoothById($application->booth_id);
         $event = Events::where('id', $application->event_id)->first();
+
+        $total = number_format((float)((int)$application->booth_qty * (int)$application->no_of_days * (float)$event_booth->price), 2, '.', '');
+
+        if ($application->discount) {
+            $total -= $application->discount_value;
+        }
 
         $token = config('custom.monday_token');
         $apiUrl = 'https://api.monday.com/v2';
@@ -327,7 +340,7 @@ class EventApplicationsController extends Controller
                     "numbers3" => $application->booth_qty,
                     "text98" => $application->description,
                     "label6__1" => ["index" => $booth->monday_booth_id],
-                    "dropdown8__1" => $application->plug == 'Y' ? ["ids" => [1]] : ["ids" => [2]]
+                    "dropdown8__1" => $application->plug == 'Y' ? ["ids" => [1]] : ["ids" => [2]],
                 ]
             )
         ];

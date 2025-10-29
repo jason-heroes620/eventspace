@@ -383,15 +383,12 @@ class EventPaymentController extends Controller
         }
 
         try {
-            $payment = EventPayments::updateOrCreate(
-                ['application_id' => $application->id],
+            $payment = EventPayments::where('application_code', $code)->update(
                 [
-                    'application_id' => $application->id,
                     'payment_total' => $data['payment_total'],
                     'reference_no' => $data['reference_no'],
                     'payment_reference' => $data['payment_reference'],
                     'status' => 2,
-                    'application_code' => $code
                 ]
             );
 
@@ -432,6 +429,20 @@ class EventPaymentController extends Controller
                 $error->error = $ex;
                 $error->save();
             }
+
+            $payment_info = EventPayments::where('application_code', $code)->first();
+
+            $application = EventApplications::where('id', $application->id)
+                ->first();
+            $event = Events::where('id', $application->event_id)->first();
+            $email_list = ResponseEmailList::where('response_email_type', 'PR')->get();
+            try {
+                Mail::to($email_list)
+                    ->later(now()->addMinutes(5), new PaymentNotification($event, $application, $payment_info));
+            } catch (Throwable $ex) {
+                Log::error($ex);
+            }
+
             return response()->json(["success", "Payment reference has been received"], 200);
         } catch (Exception $e) {
             Log::error($e);

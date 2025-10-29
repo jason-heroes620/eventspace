@@ -21,7 +21,7 @@
     </div>
     <p></p>
     <div>
-        <p> To finalise your participation, please make a full payment for the retail display fee by <b>[{{ date('F d, Y', strtotime($due_date)) }}]</b> with the total of <b>RM {{$payment}}</b>. You can make payment through:</p>
+        <p> To finalise your participation, please make a full payment for the retail display fee by <b>[{{ date('F d, Y', strtotime($due_date)) }}]</b> with the total of <b>RM {{ $payment }}</b>. You can make payment through:</p>
     </div>
     <p></p>
     <div>
@@ -34,7 +34,7 @@
     </div>
     <p></p>
     <div>
-        <p>Once you have made payment, please upload your payment receipt by clicking this <a href={{ $upload_reference_link }} target="_blank">link</a>
+        <p>Once you have made payment, please upload your payment receipt by clicking this <a href={{ $upload_reference_link }} target="_blank">Link</a>
     </div>
     <p></p>
     <div>
