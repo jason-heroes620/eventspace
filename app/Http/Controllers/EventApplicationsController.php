@@ -25,6 +25,7 @@ use App\Models\PaymentDetail;
 use App\Models\ResponseEmailList;
 use DateTime;
 use DateTimeZone;
+use Illuminate\Support\Facades\Auth;
 
 class EventApplicationsController extends Controller
 {
@@ -185,6 +186,8 @@ class EventApplicationsController extends Controller
 
     public  function setUpdateStatus($status, $post, $application_id)
     {
+        $user = Auth::user();
+
         if ($post["status"] == 'reject') {
             $status->status = 'R';
             $status->message = "Application has been updated to REJECTED";
@@ -194,6 +197,9 @@ class EventApplicationsController extends Controller
         } else {
             $status->status = 'N';
         }
+
+        $application = EventApplications::where('id', $application_id)->first();
+        Log::info('status updated. ORI =>' . $application->status . ' to => ' . $status->status . " by => " . $user->name);
 
         try {
             DB::table('event_applications')
@@ -218,12 +224,20 @@ class EventApplicationsController extends Controller
                 Log::info('application id ' . $application->id . ' total ' . $total);
                 $application->payment = number_format($total, 2, '.', '');
 
-                $payment = new EventPayments();
-                $payment->application_id = $application->id;
-                $payment->application_code = $application->application_code;
-                $payment->payment_total = $total;
-                $payment->status = 1;
-                $payment->save();
+                // $payment = new EventPayments();
+                // $payment->application_id = $application->id;
+                // $payment->application_code = $application->application_code;
+                // $payment->payment_total = $total;
+                // $payment->status = 1;
+                // $payment->save();
+
+                $payment = EventPayments::updateOrCreate([
+                    "application_code" => $application->application_code,
+                    "application_id" => $application->id,
+                ], [
+                    "payment_total" => $total,
+                    "status" => 1
+                ]);
 
                 $id = $payment->id;
                 $payment_link = config('custom.payment_redirect_host') . "/payment/" . $id . "/code/" . $application->application_code;
@@ -267,10 +281,15 @@ class EventApplicationsController extends Controller
     {
         Log::info('sendNotificationEmail');
         Log::info($application);
+
         try {
+            $event = Events::where('id', $application->event_id)->first();
+            $bcc = ['admin.test@heroes.my'];
+            if ($event->event_name === 'What The Pets')
+                array_push($bcc, 'lencerz@gmail.com');
             if ($type === 'A') {
                 Mail::to($application->email)
-                    ->bcc("admin.test@heroes.my")
+                    ->bcc($bcc)
                     ->later(now()->addMinutes(1), new ApplicationApprovedResponse($event, $application, $payment_link, $total, $reference_link));
                 // ->later(now(), new ApplicationApprovedResponse($event, $application, $payment_link, $total, $reference_link));
             } else {

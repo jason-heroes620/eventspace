@@ -29,7 +29,7 @@
                     <li class="nav-item">
                         <a class="nav-link @if(Route::currentRouteName() == 'applications') active @endif" aria-current="page" href="{{ route('applications')}}">Applications</a>
                     </li>
-                    <li class="nav-item dropdown">
+                    {{-- <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle  @if(Route::currentRouteName() == 'dailysales' || Route::currentRouteName() == 'vendorsales') active @endif" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             Event Sales
                         </a>
@@ -37,7 +37,7 @@
                             <li><a class="dropdown-item  @if(Route::currentRouteName() == 'dailysales') active @endif" href="{{ route('dailysales') }}">Daily Sales</a></li>
                             <li><a class="dropdown-item   @if(Route::currentRouteName() == 'vendorsales') active @endif" href="{{ route('vendorsales') }}">Vendor Sales Report</a></li>
                         </ul>
-                    </li>
+                    </li> --}}
                 </ul>
                 <form action="{{ route('logout') }}" method="POST" class="d-flex" role="search">
                     @csrf

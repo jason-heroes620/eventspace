@@ -146,8 +146,14 @@
     <div class="container bg-light py-2">
         <div class="col-12 btn-group justify-right p-2 justify-content-end gap-4">
             <div>
+                @if($application->status === 'A')
                 <button id="reject" class="btn btn-danger" type="submit">Reject</button>
+                @elseif($application->status === 'R')
                 <button id="approve" class="btn btn-success" type="submit">Approve</button>
+                @else
+                 <button id="reject" class="btn btn-danger" type="submit">Reject</button>
+                 <button id="approve" class="btn btn-success" type="submit">Approve</button>
+                @endif
             </div>
         </div>
     </div>
