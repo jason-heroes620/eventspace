@@ -24,10 +24,9 @@ class EventBoothController extends Controller
     private function getEventBooth($id)
     {
         $query = DB::table('events_booths')
+            ->select('events_booths.id', 'booth_type', 'display_price', 'min_day', 'price', 'booth_id')
             ->join('booths', 'booths.id', '=', 'events_booths.booth_id')
-            ->where('events_booths.event_id', '=', $id)
-            ->where('booths.status', '=', '0')
-            ->orderBy('orders');
+            ->where('events_booths.event_id', '=', $id);
 
         return $query->get();
     }
@@ -35,11 +34,7 @@ class EventBoothController extends Controller
     public function getEventBoothPriceById($event_id, $booth_id)
     {
         $query = DB::table('events_booths')
-            ->join('booths', 'booths.id', '=', 'events_booths.booth_id')
-            ->where('events_booths.event_id', '=', $event_id)
-            ->where('events_booths.booth_id', '=', $booth_id)
-            ->where('booths.status', '=', '0')
-            ->orderBy('orders');
+            ->where('events_booths.id', '=', $booth_id);
 
         return $query->first(['price', 'display_price']);
     }

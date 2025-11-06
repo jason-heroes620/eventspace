@@ -34,8 +34,14 @@ class EventApplicationsController extends Controller
         if (isset($req->id)) {
             $application = $this->getApplication($req->id, $req->page);
             $categories = (new ApplicationCategoriesController)->getApplicationCategories($req->id);
-            $booth = (new BoothController)->getBoothById($application[0]->booth_id);
-            $event_booth = (new EventBoothController)->getEventBoothPriceById($application[0]->event_id, $application[0]->booth_id);
+
+            Log::info('application');
+            Log::info($application[0]);
+            $event_booth = EventBooth::where('id', $application[0]->booth_id)->first();
+            Log::info('event booth');
+            Log::info($event_booth);
+            $booth = (new BoothController)->getBoothById($event_booth->booth_id);
+
             $booth_price = number_format((float)($event_booth->price), 2, '.', '');
             $total = number_format((float)((int)$application[0]->booth_qty * (int)$application[0]->no_of_days * (float)$event_booth->price), 2, '.', '');
 
@@ -322,7 +328,8 @@ class EventApplicationsController extends Controller
 
 
         $event_booth = (new EventBoothController)->getEventBoothPriceById($application->event_id, $application->booth_id);
-        $booth = (new BoothController)->getBoothById($application->booth_id);
+        // $booth = (new BoothController)->getBoothById($application->booth_id);
+        $booth = EventBooth::where('id', $application->booth_id)->first()->monday_booth_id;
         $event = Events::where('id', $application->event_id)->first();
 
         $total = number_format((float)((int)$application->booth_qty * (int)$application->no_of_days * (float)$event_booth->price), 2, '.', '');
@@ -358,7 +365,7 @@ class EventApplicationsController extends Controller
                     "numbers5" => $application->participants,
                     "numbers3" => $application->booth_qty,
                     "text98" => $application->description,
-                    "label6__1" => ["index" => $booth->monday_booth_id],
+                    "label6__1" => ["index" => $booth],
                     "dropdown8__1" => $application->plug == 'Y' ? ["ids" => [1]] : ["ids" => [2]],
                 ]
             )
