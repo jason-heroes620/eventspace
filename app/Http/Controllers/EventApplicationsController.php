@@ -35,11 +35,7 @@ class EventApplicationsController extends Controller
             $application = $this->getApplication($req->id, $req->page);
             $categories = (new ApplicationCategoriesController)->getApplicationCategories($req->id);
 
-            Log::info('application');
-            Log::info($application[0]);
             $event_booth = EventBooth::where('id', $application[0]->booth_id)->first();
-            Log::info('event booth');
-            Log::info($event_booth);
             $booth = (new BoothController)->getBoothById($event_booth->booth_id);
 
             $booth_price = number_format((float)($event_booth->price), 2, '.', '');
