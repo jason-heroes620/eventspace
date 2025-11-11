@@ -361,7 +361,7 @@ class EventPaymentController extends Controller
 
         $booth = EventBooth::select('price', 'booth_type')
             ->leftJoin('booths', 'booths.id', 'events_booths.booth_id')
-            ->where('events_booths.booth_id', $application->booth_id)->first();
+            ->where('events_booths.id', $application->booth_id)->first();
         $payment = $application->no_of_days * $application->booth_qty * $booth->price;
         if ($application->discount) {
             $payment -= $application->discount_value;
