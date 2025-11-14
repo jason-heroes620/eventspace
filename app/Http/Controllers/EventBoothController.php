@@ -26,7 +26,8 @@ class EventBoothController extends Controller
         $query = DB::table('events_booths')
             ->select('events_booths.id', 'booth_type', 'display_price', 'min_day', 'price', 'booth_id')
             ->join('booths', 'booths.id', '=', 'events_booths.booth_id')
-            ->where('events_booths.event_id', '=', $id);
+            ->where('events_booths.event_id', '=', $id)
+            ->where('events_booth.status', 0);
 
         return $query->get();
     }
