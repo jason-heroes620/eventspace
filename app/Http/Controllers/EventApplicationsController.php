@@ -24,6 +24,7 @@ use App\Models\ApplicationError;
 use App\Models\EventDeposit;
 use App\Models\PaymentDetail;
 use App\Models\ResponseEmailList;
+use DateInterval;
 use DateTime;
 use DateTimeZone;
 use Illuminate\Support\Facades\Auth;
@@ -229,7 +230,15 @@ class EventApplicationsController extends Controller
                     $total -= $application->discount_value;
                 }
 
-                $event->due_date = new DateTime($event->event_start_date)->modify('-14 days')->format('d M Y');
+                $dateTime = new DateTime($event->event_start_date);
+
+                // 2. Define the interval to subtract (P14D = Period of 14 Days)
+                $interval = new DateInterval('P14D');
+
+                // 3. Subtract the interval from the date.
+                $event->due_date = $dateTime->sub($interval)->format('d M Y');
+
+                // $event->due_date = new DateTime($event->event_start_date)->modify('-14 days')->format('d M Y');
                 Log::info($event->event_start_date);
                 Log::info($event->due_date);
 
