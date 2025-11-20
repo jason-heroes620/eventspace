@@ -21,6 +21,7 @@ use Throwable;
 use GuzzleHttp\Client;
 use App\Models\EventCategories;
 use App\Models\ApplicationError;
+use App\Models\EventDeposit;
 use App\Models\PaymentDetail;
 use App\Models\ResponseEmailList;
 use DateTime;
@@ -189,7 +190,7 @@ class EventApplicationsController extends Controller
     public  function setUpdateStatus($status, $post, $application_id)
     {
         $user = Auth::user();
-
+        $total = 0.00;
         if ($post["status"] == 'reject') {
             $status->status = 'R';
             $status->message = "Application has been updated to REJECTED";
@@ -221,20 +222,43 @@ class EventApplicationsController extends Controller
 
             if ($payment_exists && $status->status === 'A') {
                 $event_booth = (new EventBoothController)->getEventBoothPriceById($application->event_id, $application->booth_id);
-                $total = number_format((float)((int)$application->booth_qty * (int)$application->no_of_days * (float)$event_booth->price), 2, '.', '');
+                $subTotal = (float)((int)$application->booth_qty * (int)$application->no_of_days * (int)$event_booth->price);
+                $total += $subTotal;
 
                 if ($application->discount) {
                     $total -= $application->discount_value;
                 }
+
+                $event->due_date = new DateTime($event->event_start_date)->modify('-14 days')->format('d M Y');
+                Log::info($event->event_start_date);
+                Log::info($event->due_date);
+
                 Log::info('application id ' . $application->id . ' total ' . $total);
                 $application->payment = number_format($total, 2, '.', '');
 
-                // $payment = new EventPayments();
-                // $payment->application_id = $application->id;
-                // $payment->application_code = $application->application_code;
-                // $payment->payment_total = $total;
-                // $payment->status = 1;
-                // $payment->save();
+                // newly added
+                $booth = EventBooth::select('booth_type')->leftJoin('booths', 'booths.id', 'events_booths.booth_id')
+                    ->where('events_booths.id', $application->booth_id)
+                    ->first();
+
+                $deposit = EventDeposit::whereNull('end_date')->where('event_deposit_status', true)->where('start_date', '<=', date('Y-m-d'))->first();
+                $application->deposit = $deposit;
+                $application->subTotal = $subTotal;
+                $application->deposit_amount = $deposit->event_deposit;
+                Log::info('deposit');
+                Log::info($deposit);
+                if ($deposit) {
+                    $total += $deposit->event_deposit;
+                }
+                $application->booth_type = $booth->booth_type;
+                Log::info($booth->booth_type);
+                Log::info("total");
+                Log::info($total);
+                if ($application->discount) {
+                    Log::info('discount' . $application->discount_value);
+                    $total -= $application->discount_value;
+                    Log::info($total);
+                }
 
                 $payment = EventPayments::updateOrCreate([
                     "application_code" => $application->application_code,
@@ -244,12 +268,14 @@ class EventApplicationsController extends Controller
                     "status" => 1
                 ]);
 
+                $application->payment = number_format($total, 2, '.', '');
+
                 $id = $payment->id;
                 $payment_link = config('custom.payment_redirect_host') . "/payment/" . $id . "/code/" . $application->application_code;
                 $reference_link = config('custom.payment_redirect_host') . "/payment-reference/" . $application->application_code;
 
                 Log::info('payment_link ' . $payment_link);
-                Log::info('application->reference_link ' . $application->reference_link);
+                Log::info('application->reference_link ' . $reference_link);
                 // send successful email
                 $this->sendNotificationEmail($status->status, $event, $application, $payment_link, $total, $reference_link);
             }
@@ -288,14 +314,28 @@ class EventApplicationsController extends Controller
         Log::info($application);
 
         try {
-            $event = Events::where('id', $application->event_id)->first();
+            // $event = Events::where('id', $application->event_id)->first();
             $bcc = ['admin.test@heroes.my'];
             if ($event->event_name === 'What The Pets')
                 array_push($bcc, 'lencerz@gmail.com');
             if ($type === 'A') {
                 Mail::to($application->email)
                     ->bcc($bcc)
-                    ->later(now()->addMinutes(1), new ApplicationApprovedResponse($event, $application, $payment_link, $total, $reference_link));
+                    ->later(
+                        now()->addMinutes(0),
+                        new ApplicationApprovedResponse(
+                            $event,
+                            $application,
+                            $payment_link,
+                            $total,
+                            $reference_link,
+                            $application->deposit,
+                            $application->booth_type,
+                            $application->subTotal,
+                            $application->deposit_amount,
+                            $event->due_date,
+                        )
+                    );
                 // ->later(now(), new ApplicationApprovedResponse($event, $application, $payment_link, $total, $reference_link));
             } else {
                 Mail::to($application->email)

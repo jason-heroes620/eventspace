@@ -26,6 +26,11 @@ class ApplicationApprovedResponse extends Mailable
         protected $payment_link,
         protected $total,
         protected $reference_link,
+        protected $deposit,
+        protected $booth_type,
+        protected $subTotal,
+        protected $deposit_amount,
+        protected $due_date,
     ) {}
 
     /**
@@ -43,6 +48,9 @@ class ApplicationApprovedResponse extends Mailable
      */
     public function content(): Content
     {
+        Log::info('mail data');
+        Log::info($this->application);
+        Log::info($this->event);
         return new Content(
             view: 'mails.application-approvedv2',
             with: [
@@ -51,15 +59,15 @@ class ApplicationApprovedResponse extends Mailable
                 'event_date' => $this->event->event_date,
                 'location' => $this->event->event_location,
                 'venue' => $this->event->venue,
-                'due_date' => $this->event->due_date,
+                'due_date' => $this->due_date,
                 'payment_link' => $this->payment_link,
                 'payment' => number_format($this->total, 2),
                 'upload_reference_link' => $this->reference_link,
-                'booth_type' => $this->application->booth,
+                'booth_type' => $this->booth_type,
                 'booth_qty' => $this->application->booth_qty,
-                'deposit' => $this->application->deposit,
-                'subTotal' => number_format($this->application->subTotal, 2),
-                'deposit_amount' => number_format($this->application->deposit_amount, 2),
+                'deposit' => $this->deposit,
+                'subTotal' => number_format($this->subTotal, 2),
+                'deposit_amount' => number_format($this->deposit_amount, 2),
             ]
         );
     }
