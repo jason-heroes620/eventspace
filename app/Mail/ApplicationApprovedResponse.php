@@ -53,8 +53,13 @@ class ApplicationApprovedResponse extends Mailable
                 'venue' => $this->event->venue,
                 'due_date' => $this->event->due_date,
                 'payment_link' => $this->payment_link,
-                'payment' => $this->total,
-                'upload_reference_link' => $this->reference_link
+                'payment' => number_format($this->total, 2),
+                'upload_reference_link' => $this->reference_link,
+                'booth_type' => $this->application->booth,
+                'booth_qty' => $this->application->booth_qty,
+                'deposit' => $this->application->deposit,
+                'subTotal' => number_format($this->application->subTotal, 2),
+                'deposit_amount' => number_format($this->application->deposit_amount, 2),
             ]
         );
     }

@@ -390,6 +390,9 @@ class EventPaymentController extends Controller
                     'payment_reference' => $data['payment_reference'],
                     'created' => date("Y-m-d H:i:s"),
                     'status' => 2,
+                    'bank' => $data['bank'] ?? '',
+                    'account_name' => $data['accountName'] ?? '',
+                    'account_no' => $data['accountNo'] ?? '',
                 ]
             );
 

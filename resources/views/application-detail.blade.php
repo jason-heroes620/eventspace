@@ -140,17 +140,31 @@
             <a href={{ $payment->path }} target="_blank"  class="col-12 col-md-8 py-2">View File</a>
         </div>
         @endif
+
+         <div class="row py-2 flex items-center">
+            <span class="col-12 col-md-4"><strong>Bank</strong></span>
+            <span class="col-12 col-md-8 py-2 border">{{ $payment->bank }}</span>
+        </div>
+         <div class="row py-2">
+            <span class="col-12 col-md-4"><strong>Account Name</strong></span>
+            <span class="col-12 col-md-8 py-2 border">{{ $payment->account_name }}</span>
+        </div>
+         <div class="row py-2">
+            <span class="col-12 col-md-4"><strong>Account No.</strong></span>
+            <span class="col-12 col-md-8 py-2 border">{{ $payment->account_no }}</span>
+        </div>
     </div>
     <hr>
     @endif
     <div class="container bg-light py-2">
-        <div class="col-12 btn-group justify-right p-2 justify-content-end gap-4">
-            <div>
+        <div class="col-12 btn-group justify-right p-2 justify-content-end gap-6">
+            <div class="">
                 {{-- @if($application->status === 'A')
                 <button id="reject" class="btn btn-danger" type="submit">Reject</button>
                 @elseif($application->status === 'R')
                 <button id="approve" class="btn btn-success" type="submit">Approve</button>
                 @else --}}
+                 <button id="cancel" class="btn btn-warning" type="submit">Cancel</button>
                  <button id="reject" class="btn btn-danger" type="submit">Reject</button>
                  <button id="approve" class="btn btn-success" type="submit">Approve</button>
                 {{-- @endif --}}
@@ -273,6 +287,53 @@
                         }, 2000)
 
                     }
+                },
+                error: function(xhr, status, error) {}
+            });
+        }
+    })
+
+    $("#cancel").click(function(e) {
+        data = {
+            "status": "cancel"
+        }
+        e.preventDefault();
+        if (confirm("Confirm to 'CANCEL' application?")) {
+            showLoading();
+            $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: "{{ route('updateStatus', [$application->id])}}",
+                method: "POST",
+                data: JSON.stringify(data),
+                contentType: 'application/json',
+                processData: false,
+                success: function(response) {
+                    if (!response.success) {
+                        var errorMsg = '';
+                        $.each(response.error, function(field, errors) {
+                            $.each(errors, function(index, error) {
+                                errorMsg += error + '<br>';
+                            });
+                        });
+                        iziToast.error({
+                            message: errorMsg,
+                            position: 'bottomRight'
+                        });
+                    } else {
+                        iziToast.success({
+                            id: 'question',
+                            zindex: 999,
+                            message: response.data.message,
+                            position: 'bottomRight'
+
+                        });
+                    }
+                    hideLoading();
+                    setTimeout(function() {
+                        location.reload()
+                    }, 2000)
                 },
                 error: function(xhr, status, error) {}
             });

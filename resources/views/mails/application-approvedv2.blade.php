@@ -16,7 +16,7 @@
         }
 
         .email-container {
-            max-width: 600px;
+            max-width: 650px;
             margin: 0 auto;
             background-color: #ffffff;
         }
@@ -94,6 +94,45 @@
                 padding: 20px;
             }
         }
+
+        .booth-content {
+            margin: auto;
+            width: 80%;
+            justify-content: 'center';
+            border: 1px;
+            border-color: '#000';
+        }
+
+        .payment-content {
+            margin: auto;
+            width: 90%;
+            justify-content: 'center';
+            border: 1px;
+            border-color: '#000';
+        }
+
+        .email-address {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .table {
+            border-spacing: 6px 5px;
+        }
+
+        .table_amount {
+            text-align: right;
+        }
+
+        .tr_total {
+            border-top: 2px solid black;
+            border-bottom: 2px solid black;
+        }
+
+        th {
+            background-color: #dce0e6;
+          
+        }
     </style>
 </head>
 <body>
@@ -112,25 +151,70 @@
                 <p> We're thrilled to confirm your participation as a vendor at the upcoming <b>"{{ $event_name }}"</b> event at the {{ $venue }} of {{ $location }}!</p>
             </div>
             <p></p>
-            <div>
-                <p><b>Event Dates: {{ $event_date }}</b></p>
+            
+            <div class="booth-content">
+                <table class='table'>
+                    <tr>
+                        <td><b>Event Dates:</b></td>
+                        <td>{{ $event_date }}</td>
+                    </tr>
+                    <tr>
+                        <td><b>Booth: </b></td>
+                        <td> {{ $booth_type }}</td>
+                    </tr>
+                    <tr>
+                        <td><b>No. of Booth:</b></td>
+                        <td>{{ $booth_qty }}</td>
+                    </tr>
+                </table>
+
             </div>
-            <p></p>
             <div>
-                <p>Secure Your Space:</p>
+                <p> To finalise your participation and secure your booth, please complete the full payment of <b>RM {{ $payment }}</b> by <b>[{{ date('F d, Y', strtotime($due_date)) }}]</b>.</p>
             </div>
-            <p></p>
-            <div>
-                <p> To finalise your participation, please make a full payment for the retail display fee by <b>[{{ date('F d, Y', strtotime($due_date)) }}]</b> with the total of <b>RM {{ $payment }}</b>. You can make payment through:</p>
+            
+            <div  class="booth-content">
+                @if( $deposit)
+                    <table class='table'>
+                        <tr>
+                            <th style="padding: 0 10px">Description</th>
+                            <th class='table_amount' style="padding: 0 10px">Amount (RM)</th>
+                        </tr>
+                        <tr>
+                            <td>Deposit</td>
+                           
+                            <td class='table_amount'>{{ $deposit_amount }}</td>
+                        </tr>
+                        <tr>
+                            <td>Balance Payment</td>
+                      
+                            <td class='table_amount'>{{ $subTotal }}</td>
+                        </tr>
+                        <tr>
+                            <td class='tr_total'>Total Payment</td>
+                       
+                            <td class='table_amount tr_total'>{{ $payment }}</td>
+                        </tr>
+                    </table>
+
+                @endif
             </div>
-            <p></p>
             <div>
-                <p>Online Banking:</p>
-                <h4>
-                <span>Accessible Experiences Sdn Bhd</span><br>
-                <span>Company Registration No.: 202301002699 (1496618­A) </span><br>
-                <span>Account Number: <b>86 0546 3742  (CIMB)</b></span><br>
-                </h4>
+                <p>You can make payment through Online Banking:</p>
+                <table class='payment-content'>
+                    <tr>
+                        <td><b>Bank: CIMB</b></td>
+                    </tr>
+                    <tr>
+                        <td><b>Accessible Experiences Sdn Bhd</b></td>
+                    </tr>
+                    <tr>
+                        <td><b>Company Registration No.: 202301002699 (1496618­A)</b></td>
+                    </tr>
+                    <tr>
+                        <td><b>Account Number: <b>86 0546 3742</b></td>
+                    </tr>
+                </table>
             </div>
             <p></p>
             <div>
@@ -151,14 +235,20 @@
             <span  class="footer-text">Sincerely,</span><br>
             <span  class="footer-text">Heroes Event Team</span>
             <p></p>
-            <span  class="footer-text">Contact No.: </span><br>
-            <span class="footer-text">012 7456 785</span>
-            <p></p>
-            <span class="footer-text">Address:</span><br>
-            <span class="footer-text">Suite 9.01, Menara Summit</span><br>
-            <span class="footer-text">Persiaran Kewajipan, USJ 1,</span><br>
-            <span class="footer-text">UEP, 47600 Subang Jaya,</span><br>
-            <span class="footer-text">Selangor</span><br>
+           <div class="email-address">
+                <div>
+                    <span  class="footer-text">Contact No.: </span><br>
+                    <span class="footer-text">012 7456 785</span>
+                </div>
+
+                <div>
+                    <span class="footer-text">Address:</span><br>
+                    <span class="footer-text">Suite 9.01, Menara Summit</span><br>
+                    <span class="footer-text">Persiaran Kewajipan, USJ 1,</span><br>
+                    <span class="footer-text">UEP, 47600 Subang Jaya,</span><br>
+                    <span class="footer-text">Selangor</span><br>
+                </div>
+           </div>
         </div>
     </div>
 </body>

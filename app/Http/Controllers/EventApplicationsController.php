@@ -196,6 +196,9 @@ class EventApplicationsController extends Controller
         } else if ($post["status"] == "approve") {
             $status->status = 'A';
             $status->message = "Application has been updated to APPROVED";
+        } else if ($post["status"] == "cancel") {
+            $status->status = 'C';
+            $status->message = "Application has been updated to CANCEL";
         } else {
             $status->status = 'N';
         }
