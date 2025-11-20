@@ -240,16 +240,20 @@ class EventApplicationsController extends Controller
                 $booth = EventBooth::select('booth_type')->leftJoin('booths', 'booths.id', 'events_booths.booth_id')
                     ->where('events_booths.id', $application->booth_id)
                     ->first();
+                $deposit = null;
 
-                $deposit = EventDeposit::whereNull('end_date')->where('event_deposit_status', true)->where('start_date', '<=', date('Y-m-d'))->first();
-                $application->deposit = $deposit;
-                $application->subTotal = $subTotal;
-                $application->deposit_amount = $deposit->event_deposit;
-                Log::info('deposit');
-                Log::info($deposit);
-                if ($deposit) {
-                    $total += $deposit->event_deposit;
+                if ($event->require_deposit === 'Y') {
+                    $deposit = EventDeposit::whereNull('end_date')->where('event_deposit_status', true)->where('start_date', '<=', date('Y-m-d'))->first();
+                    $application->deposit = $deposit;
+                    $application->subTotal = $subTotal;
+                    $application->deposit_amount = $deposit->event_deposit;
+                    Log::info('deposit');
+                    Log::info($deposit);
+                    if ($deposit) {
+                        $total += $deposit->event_deposit;
+                    }
                 }
+
                 $application->booth_type = $booth->booth_type;
                 Log::info($booth->booth_type);
                 Log::info("total");
