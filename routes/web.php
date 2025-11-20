@@ -137,45 +137,45 @@ Route::group(['middleware' => 'auth'], function () {
 
     // Route::view('/{any?}', 'dashboard')->where('any', '.*');
 
-    Route::get('/preview-mail', function () {
-        $application_id = 51;
-        $total = 0.00;
-        $application = EventApplications::where('id', $application_id)
-            ->first();
-        $event = Events::where('id', $application->event_id)->first();
-        $link = config('custom.payment_redirect_host') . '/payment/' . $application->application_code;
-        $application->reference_link = config('custom.payment_redirect_host') . '/payment-reference/' . $application->application_code;
+    // Route::get('/preview-mail', function () {
+    //     $application_id = 51;
+    //     $total = 0.00;
+    //     $application = EventApplications::where('id', $application_id)
+    //         ->first();
+    //     $event = Events::where('id', $application->event_id)->first();
+    //     $link = config('custom.payment_redirect_host') . '/payment/' . $application->application_code;
+    //     $application->reference_link = config('custom.payment_redirect_host') . '/payment-reference/' . $application->application_code;
 
-        $event_booth = (new EventBoothController)->getEventBoothPriceById($application->event_id, $application->booth_id);
-        $subTotal = (float)((int)$application->booth_qty * (int)$application->no_of_days * (int)$event_booth->price);
-        $total += $subTotal;
+    //     $event_booth = (new EventBoothController)->getEventBoothPriceById($application->event_id, $application->booth_id);
+    //     $subTotal = (float)((int)$application->booth_qty * (int)$application->no_of_days * (int)$event_booth->price);
+    //     $total += $subTotal;
 
-        $event->due_date = new DateTime($application->created)->modify('+7 days')->format('D M Y');
+    //     $event->due_date = new DateTime($application->created)->modify('+7 days')->format('D M Y');
 
-        $booth = EventBooth::select('booth_type')->leftJoin('booths', 'booths.id', 'events_booths.booth_id')
-            ->where('events_booths.id', $application->booth_id)
-            ->first();
+    //     $booth = EventBooth::select('booth_type')->leftJoin('booths', 'booths.id', 'events_booths.booth_id')
+    //         ->where('events_booths.id', $application->booth_id)
+    //         ->first();
 
-        $deposit = EventDeposit::whereNull('end_date')->where('event_deposit_status', true)->where('start_date', '<=', date('Y-m-d'))->first();
-        $application->deposit = $deposit;
-        $application->subTotal = $subTotal;
-        $application->deposit_amount = $deposit->event_deposit;
+    //     $deposit = EventDeposit::whereNull('end_date')->where('event_deposit_status', true)->where('start_date', '<=', date('Y-m-d'))->first();
+    //     $application->deposit = $deposit;
+    //     $application->subTotal = $subTotal;
+    //     $application->deposit_amount = $deposit->event_deposit;
 
-        if ($deposit) {
-            $total += $deposit->event_deposit;
-        }
-        $application->booth = $booth->booth_type;
-        Log::info($booth->booth_type);
-        Log::info("total");
-        Log::info($total);
-        if ($application->discount) {
-            Log::info('discount' . $application->discount_value);
-            $total -= $application->discount_value;
-            Log::info($total);
-        }
-        $application->payment = number_format($total, 2, '.', '');
-        return new ApplicationApprovedResponse($event, $application, $link, $total, $application->reference_link);
-    });
+    //     if ($deposit) {
+    //         $total += $deposit->event_deposit;
+    //     }
+    //     $application->booth = $booth->booth_type;
+    //     Log::info($booth->booth_type);
+    //     Log::info("total");
+    //     Log::info($total);
+    //     if ($application->discount) {
+    //         Log::info('discount' . $application->discount_value);
+    //         $total -= $application->discount_value;
+    //         Log::info($total);
+    //     }
+    //     $application->payment = number_format($total, 2, '.', '');
+    //     return new ApplicationApprovedResponse($event, $application, $link, $total, $application->reference_link);
+    // });
 });
 
 // Route::get('/test-image', function () {
