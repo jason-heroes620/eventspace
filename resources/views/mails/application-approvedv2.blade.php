@@ -200,6 +200,7 @@
                 @endif
             </div>
             <div>
+                <p></p>
                 <p>You can make payment through Online Banking:</p>
                 <table class='payment-content'>
                     <tr>

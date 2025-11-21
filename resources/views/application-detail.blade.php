@@ -145,9 +145,13 @@
             <span class="col-12 col-md-4"><strong>Bank</strong></span>
             <span class="col-12 col-md-8 py-2 border">{{ $payment->bank }}</span>
         </div>
-         <div class="row py-2">
+        <div class="row py-2">
             <span class="col-12 col-md-4"><strong>Account Name</strong></span>
             <span class="col-12 col-md-8 py-2 border">{{ $payment->account_name }}</span>
+        </div>
+        <div class="row py-2">
+            <span class="col-12 col-md-4"><strong>IC / Company SSM No.</strong></span>
+            <span class="col-12 col-md-8 py-2 border">{{ $payment->bank_id }}</span>
         </div>
          <div class="row py-2">
             <span class="col-12 col-md-4"><strong>Account No.</strong></span>

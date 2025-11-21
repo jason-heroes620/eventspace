@@ -393,6 +393,7 @@ class EventPaymentController extends Controller
                     'bank' => $data['bank'] ?? '',
                     'account_name' => $data['accountName'] ?? '',
                     'account_no' => $data['accountNo'] ?? '',
+                    'bank_id' => $data['bankId'] ?? '',
                 ]
             );
 

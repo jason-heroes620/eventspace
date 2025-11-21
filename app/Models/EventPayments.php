@@ -23,6 +23,7 @@ class EventPayments extends Model
         'bank',
         'account_no',
         'account_name',
+        'bank_id',
     ];
 
     const CREATED_AT = 'created';
