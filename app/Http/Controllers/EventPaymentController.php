@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\PaymentReceived;
 use App\Mail\PaymentNotification;
 use App\Models\EventApplications;
+use App\Models\EventDeposit;
 use Exception;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Log;
@@ -363,6 +364,16 @@ class EventPaymentController extends Controller
             ->leftJoin('booths', 'booths.id', 'events_booths.booth_id')
             ->where('events_booths.id', $application->booth_id)->first();
         $payment = $application->no_of_days * $application->booth_qty * $booth->price;
+
+        $deposit = null;
+
+        if ($event->require_deposit === 'Y') {
+            $deposit = EventDeposit::whereNull('end_date')->where('event_deposit_status', true)->where('start_date', '<=', date('Y-m-d'))->first();
+
+            if ($deposit) {
+                $payment += $deposit->event_deposit;
+            }
+        }
         if ($application->discount) {
             $payment -= $application->discount_value;
         }
