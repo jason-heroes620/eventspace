@@ -357,7 +357,7 @@ class EventPaymentController extends Controller
         $application = EventApplications::select('id', 'event_id', 'organization', 'contact_person', 'contact_no', 'email', 'booth_qty', 'booth_id', 'no_of_days', 'discount_value', 'discount')
             ->where('application_code', $code)->first();
 
-        $event = Events::select('event_name', 'event_date')
+        $event = Events::select('event_name', 'event_date', 'require_deposit')
             ->where('id', $application->event_id)->first();
 
         $booth = EventBooth::select('price', 'booth_type')
@@ -368,9 +368,11 @@ class EventPaymentController extends Controller
         $deposit = null;
 
         if ($event->require_deposit === 'Y') {
+
             $deposit = EventDeposit::whereNull('end_date')->where('event_deposit_status', true)->where('start_date', '<=', date('Y-m-d'))->first();
 
             if ($deposit) {
+
                 $payment += $deposit->event_deposit;
             }
         }
