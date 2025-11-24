@@ -21,8 +21,7 @@ class ApplicationRejectedResponse extends Mailable
     public function __construct(
         protected Events $event,
         protected EventApplications $application,
-    ) {
-    }
+    ) {}
 
     /**
      * Get the message envelope.
@@ -30,7 +29,7 @@ class ApplicationRejectedResponse extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: $this->event->event_name,
+            subject: $this->event->event_name . ' - Application Is Rejected',
         );
     }
 
