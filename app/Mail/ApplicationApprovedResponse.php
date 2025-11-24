@@ -68,6 +68,8 @@ class ApplicationApprovedResponse extends Mailable
                 'deposit' => $this->deposit,
                 'subTotal' => number_format($this->subTotal, 2),
                 'deposit_amount' => number_format($this->deposit_amount, 2),
+                'discount' => $this->application->discount ?? null,
+                'discount_value' => $this->application->discount ? $this->application->discount_value : null,
             ]
         );
     }

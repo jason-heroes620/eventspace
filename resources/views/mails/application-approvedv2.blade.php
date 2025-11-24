@@ -191,10 +191,10 @@
                       
                             <td class='table_amount'>{{ $subTotal }}</td>
                         </tr>
-                        @if($application->discount)
+                        @if($discount)
                             <tr>
                                 <td>Discount</td>
-                                <td class='table_amount'>{{ $application->discount_value }}</td>
+                                <td class='table_amount'>{{ $discount_value }}</td>
                             </tr>
                         @endif
                         <tr>
