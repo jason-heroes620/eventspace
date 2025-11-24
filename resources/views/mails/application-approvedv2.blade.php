@@ -170,7 +170,7 @@
 
             </div>
             <div>
-                <p> To finalise your participation and secure your booth, please complete the full payment of <b>RM {{ $payment }}</b> within 3 days of receiving this email.</p>
+                <p> To finalise your participation and secure your booth, please complete the full payment of <b>RM {{ $payment }}</b> within 7 days of receiving this email.</p>
             </div>
             
             <div  class="booth-content">
