@@ -230,13 +230,13 @@ class EventApplicationsController extends Controller
                     $total -= $application->discount_value;
                 }
 
-                $dateTime = new DateTime($event->event_start_date);
+                $dateTime = new DateTime($application->created);
 
                 // 2. Define the interval to subtract (P14D = Period of 14 Days)
-                $interval = new DateInterval('P14D');
+                $interval = new DateInterval('P7D');
 
                 // 3. Subtract the interval from the date.
-                $event->due_date = $dateTime->sub($interval)->format('d M Y');
+                $event->due_date = $dateTime->add($interval)->format('d M Y');
 
                 // $event->due_date = new DateTime($event->event_start_date)->modify('-14 days')->format('d M Y');
                 Log::info($event->event_start_date);
@@ -267,11 +267,11 @@ class EventApplicationsController extends Controller
                 Log::info($booth->booth_type);
                 Log::info("total");
                 Log::info($total);
-                if ($application->discount) {
-                    Log::info('discount' . $application->discount_value);
-                    $total -= $application->discount_value;
-                    Log::info($total);
-                }
+                // if ($application->discount) {
+                //     Log::info('discount' . $application->discount_value);
+                //     $total -= $application->discount_value;
+                //     Log::info($total);
+                // }
 
                 $payment = EventPayments::updateOrCreate([
                     "application_code" => $application->application_code,
