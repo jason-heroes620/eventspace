@@ -170,7 +170,7 @@
 
             </div>
             <div>
-                <p> To finalise your participation and secure your booth, please complete the full payment of <b>RM {{ $payment }}</b> within 7 days of receiving this email.</p>
+                <p> To finalise your participation and secure your booth, please complete the full payment of <b>RM {{ $payment }}</b> within 3 days of receiving this email.</p>
             </div>
             
             <div  class="booth-content">
@@ -185,11 +185,18 @@
                            
                             <td class='table_amount'>{{ $deposit_amount }}</td>
                         </tr>
+                       
                         <tr>
                             <td>Balance Payment</td>
                       
                             <td class='table_amount'>{{ $subTotal }}</td>
                         </tr>
+                        @if($application->discount)
+                            <tr>
+                                <td>Discount</td>
+                                <td class='table_amount'>{{ $application->discount_value }}</td>
+                            </tr>
+                        @endif
                         <tr>
                             <td class='tr_total'>Total Payment</td>
                        
