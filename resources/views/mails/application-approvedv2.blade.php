@@ -137,35 +137,35 @@
 </head>
 <body>
     <div  class="email-container">
-       
         <div  class="email-header">
             <img src="{{ $message->embed(public_path('/img/heroes-logo.png')) }}" alt="" width="120" class="email-logo">
         </div>                 
-
         <div class="email-body">
             <div>
                 <p>Hi {{ $contact_person }},</p>
             </div>
             <p></p>
             <div>
-                <p> We're thrilled to confirm your participation as a vendor at the upcoming <b>"{{ $event_name }}"</b> event at the {{ $venue }} of {{ $location }}!</p>
+                <p> We're thrilled to confirm your participation as a vendor at the upcoming <b>"{{ $event_name }}"</b> event!</p>
             </div>
             <p></p>
             
             <div class="booth-content">
                 <table class='table'>
                     <tr>
-                        <td><b>Event Dates:</b></td>
-                        <td>{{ $event_date }}</td>
+                        <th style="padding: 2px 10px">Event Date</th>
+                        <th style="padding: 2px 10px">Booth</th>
+                        <th style="padding: 2px 10px">No. of Booth</th>
+                        <th style="padding: 2px 10px">Price (RM)</th>
                     </tr>
+                    @foreach($items as $item)
                     <tr>
-                        <td><b>Booth: </b></td>
-                        <td> {{ $booth_type }}</td>
+                        <td>{{ $item->event_date }}</td>
+                        <td> {{ $item->booth_type }}</td>
+                        <td>{{ $item->booth_qty }}</td>
+                        <td>{{ number_format($item->subTotal, 2) }}</td>
                     </tr>
-                    <tr>
-                        <td><b>No. of Booth:</b></td>
-                        <td>{{ $booth_qty }}</td>
-                    </tr>
+                    @endforeach
                 </table>
 
             </div>
@@ -181,29 +181,24 @@
                             <th class='table_amount' style="padding: 0 10px">Amount (RM)</th>
                         </tr>
                         <tr>
-                            <td>Deposit</td>
-                           
+                            <td style="padding: 2px 10px">Deposit</td>                         
                             <td class='table_amount'>{{ $deposit_amount }}</td>
-                        </tr>
-                       
+                        </tr>                 
                         <tr>
-                            <td>Balance Payment</td>
-                      
-                            <td class='table_amount'>{{ $subTotal }}</td>
+                            <td style="padding: 2px 10px">Balance Payment</td>                     
+                            <td class='table_amount'>{{ number_format($subTotal, 2) }}</td>
                         </tr>
                         @if($discount)
                             <tr>
-                                <td>Discount</td>
+                                <td style="padding: 2px 10px">Discount</td>
                                 <td class='table_amount'>{{ $discount_value }}</td>
                             </tr>
                         @endif
                         <tr>
-                            <td class='tr_total'>Total Payment</td>
-                       
+                            <td class='tr_total'>Total Payment</td>                     
                             <td class='table_amount tr_total'>{{ $payment }}</td>
                         </tr>
                     </table>
-
                 @endif
             </div>
             <div>

@@ -22,9 +22,17 @@ class EventController extends Controller
         }
     }
 
+    public function eventGroup($id)
+    {
+        return Events::select("id", "event_name", "event_date")
+            ->where('event_group_id', $id)->where('status', 0)->get();
+    }
+
     private function getEvents()
     {
-        return Events::where("status", 0)->orderBy("id")->get();
+        return Events::where('event_group_id',)
+            ->where("status", 0)
+            ->orderBy("event_start_date", 'desc')->get();
     }
 
     private function getEventById($id)

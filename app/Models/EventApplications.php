@@ -11,6 +11,5 @@ class EventApplications extends Model
 
     protected $table = 'event_applications';
 
-    const CREATED_AT = 'created';
-    const UPDATED_AT = null;
+    public $timestamps = false;
 }

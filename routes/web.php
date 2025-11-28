@@ -33,6 +33,7 @@ use Intervention\Image\ImageManager;
 use App\Http\Controllers\ExcelImportController;
 use App\Http\Controllers\SalesReportController;
 use App\Mail\ApplicationApprovedResponse;
+use App\Mail\ApplicationRejectedResponse;
 use App\Models\EventDeposit;
 use App\Models\Products;
 use Illuminate\Support\Facades\Artisan;
@@ -176,6 +177,18 @@ Route::group(['middleware' => 'auth'], function () {
     //     $application->payment = number_format($total, 2, '.', '');
     //     return new ApplicationApprovedResponse($event, $application, $link, $total, $application->reference_link);
     // });
+
+    Route::get('/preview-reject-mail', function () {
+        $application_id = 51;
+        $total = 0.00;
+        $application = EventApplications::where('id', $application_id)
+            ->first();
+        $event = Events::where('id', $application->event_id)->first();
+        $link = config('custom.payment_redirect_host') . '/payment/' . $application->application_code;
+        $application->reference_link = config('custom.payment_redirect_host') . '/payment-reference/' . $application->application_code;
+
+        return new ApplicationRejectedResponse($event, $application);
+    });
 });
 
 // Route::get('/test-image', function () {
@@ -367,6 +380,33 @@ Route::group(['middleware' => 'auth'], function () {
 //         Log::error($ex);
 //     }
 // });
+
+Route::get('/test-resject-mail', function () {
+    $application_id = 68;
+    $application = EventApplications::where('id', $application_id)
+        ->first();
+    $event = Events::where('id', $application->event_id)->first();
+    $link = config('custom.payment_redirect_host') . '/payment/' . $application->application_code;
+    $application->reference_link = config('custom.payment_redirect_host') . '/payment-reference/' . $application->application_code;
+
+    $event_booth = (new EventBoothController)->getEventBoothPriceById($application->event_id, $application->booth_id);
+    $total = (float)((int)$application->booth_qty * (int)$application->no_of_days * (int)$event_booth->price);
+    Log::info("total");
+    Log::info($total);
+    if ($application->discount) {
+        Log::info('discount' . $application->discount_value);
+        $total -= $application->discount_value;
+        Log::info($total);
+    }
+    $application->payment = number_format($total, 2, '.', '');
+
+    try {
+        Mail::to("jason820620@gmail.com")
+            ->send(new ApplicationRejectedResponse($event, $application));
+    } catch (Throwable $ex) {
+        Log::error($ex);
+    }
+});
 
 // Route::get('/test-test', function () {
 //     $status = (object)array("status" => 'N', 'message' => "");

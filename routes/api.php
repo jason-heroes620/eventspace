@@ -20,6 +20,7 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 
+Route::get('event_group/{id?}', [EventController::class, 'eventGroup']);
 Route::get('events/{id?}', [EventController::class, 'events']);
 
 Route::get('categories', [CategoryController::class, 'categories']);
@@ -41,6 +42,7 @@ Route::post('EGHLPaymentCallback', [EventPaymentController::class, 'eghlpaymentc
 Route::get('EGHLPaymentCallback', [EventPaymentController::class, 'eghlpaymentcallback']);
 
 Route::post('applications', [EventApplicationsController::class, 'applications']);
+Route::post('v2/applications', [EventApplicationsController::class, 'applicationsV2']);
 Route::get('applications/{id?}', [EventApplicationsController::class, 'applications']);
 
 Route::get('tnc/{id?}', [TermsAndConditionsController::class, 'tnc']);

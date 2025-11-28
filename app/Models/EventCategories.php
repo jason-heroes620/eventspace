@@ -9,5 +9,5 @@ class EventCategories extends Model
 {
     use HasFactory;
 
-    protected $table = 'event_categories';
+    protected $table = 'event_categories2';
 }

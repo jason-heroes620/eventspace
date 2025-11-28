@@ -66,7 +66,7 @@
                 <span class="col-12 col-md-4"><strong>Plug Points</strong></span>
                 <span class="col-12 col-md-8 py-2 border">{{ $application->plug }}</span>
             </div>
-            <div class="row py-2">
+            {{-- <div class="row py-2">
                 <span class="col-12 col-md-4"><strong>Booth</strong></span>
                 <span class="col-12 col-md-8 py-2 border">{{ $booth->booth_type }} ( {{ $booth_price }} )</span>
             </div>
@@ -77,7 +77,36 @@
             <div class="row py-2">
                 <span class="col-12 col-md-4"><strong>No. of Days</strong></span>
                 <span class="col-12 col-md-8 py-2 border">{{ $application->no_of_days }}</span>
+            </div> --}}
+
+            <div class="row py-4">
+                <table class="table table-auto border">
+                    <thead>
+                        <tr>
+                            <th>Event Date</th>
+                            <th>Booth Type</th>
+                            <th>No. of Booths</th>
+                            <th class="text-right">Amount (RM)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($application->items as $item)
+                        <tr>
+                            <td>{{ $item->event_date }}</td>
+                            <td>{{ $item->booth_type }}</td>
+                            <td class="text-right">{{ $item->booth_qty }}</td>
+                            <td class="text-right">{{ number_format((float)$item->subTotal, '2','.',',') }}</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                 </table>
+            </div>  
+            @if ($require_deposit)
+            <div class="row py-2">
+                <span class="col-12 col-md-4"><strong>Deposit (RM)</strong></span>
+                <span class="col-12 col-md-8 py-2 border">{{ number_format((float)$deposit, '2','.',',') }}</span>
             </div>
+            @endif
 
             @if($application->discount)
             <div class="row py-2">
