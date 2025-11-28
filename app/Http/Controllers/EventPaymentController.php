@@ -18,8 +18,10 @@ use App\Models\EventCategories;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\PaymentReceived;
 use App\Mail\PaymentNotification;
+use App\Models\EventApplicationGroup;
 use App\Models\EventApplications;
 use App\Models\EventDeposit;
+use App\Models\EventGroups;
 use Exception;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Log;
@@ -34,7 +36,7 @@ class EventPaymentController extends Controller
             // $id = $this->addPayment($req->post());
             // return $this->sendResponse(['paymentId' => $id], 200);
         } else if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            $data = $this->getPayment($req->id);
+            $data = $this->getPaymentV2($req->id);
             return $this->sendResponse($data, 200);
         } else {
             return $this->sendError('', ['error' => 'Allowed headers POST, GET'], 405);
@@ -80,7 +82,7 @@ class EventPaymentController extends Controller
     {
         if ($_SERVER['REQUEST_METHOD'] === "GET") {
             if (isset($req->id) && isset($req->code)) {
-                $data = $this->getPaymentByCode($req->id, $req->code);
+                $data = $this->getPaymentByCodeV2($req->id, $req->code);
 
                 return $this->sendResponse($data, 200);
             } else {
@@ -108,6 +110,35 @@ class EventPaymentController extends Controller
 
             $event = Events::where('id', $application->event_id)->first();
             return ['payment' => $payment, 'application' => $application, 'event' => $event, 'booth' => $booth];
+        } else {
+            return null;
+        }
+    }
+
+    private function getPaymentByCodeV2($id, $code)
+    {
+        $payment = EventPayments::where('id', $id)
+            ->where('application_code', $code)
+            ->first();
+
+
+        if (!empty($payment)) {
+            $application = EventApplicationGroup::where('id', $payment->application_id)
+                ->where('application_code', $code)
+                ->where('status', 'A')
+                ->first();
+
+            $applicationEvent = EventApplications::where('event_group_id', $application->id)->get();
+            foreach ($applicationEvent as $event) {
+                $event['event'] = Events::where('id', $event->event_id)->first()->only('event_name', 'event_date');
+                $event['booth'] = EventBooth::leftJoin('booths', 'booths.id', 'event_booth.booth_id')
+                    ->where('event_booth.event_id', $event->event_id)
+                    ->where('event_booth.booth_id', $event->booth_id)
+                    ->first()->booth_type;
+            }
+
+
+            return ['payment' => $payment, 'application' => $application, 'applicationEvent' => $applicationEvent];
         } else {
             return null;
         }
@@ -234,6 +265,27 @@ class EventPaymentController extends Controller
             ->first();
 
         $application = EventApplications::where('id', $payment->application_id)
+            ->where('status', 'A')
+            ->first();
+
+        if (!empty($application)) {
+            $event = Events::where('id', $application->event_id)->first();
+
+            $booth = Booths::where('id', $application->booth_id)
+                ->first();
+
+            return ['payment' => $payment, 'application' => $application, 'event' => $event, 'booth' => $booth];
+        } else {
+            return null;
+        }
+    }
+
+    private function getPaymentV2($id)
+    {
+        $payment = EventPayments::where('id', $id)
+            ->first();
+
+        $application = EventApplicationGroup::where('id', $payment->application_id)
             ->where('status', 'A')
             ->first();
 
@@ -383,6 +435,15 @@ class EventPaymentController extends Controller
         return response()->json(compact('application', 'booth', 'event', 'payment'));
     }
 
+    public function paymentReferenceV2(Request $request, $code)
+    {
+        $applicationGroup = EventApplicationGroup::select('id', 'organization', 'contact_person', 'contact_no', 'email', 'discount_value', 'discount')
+            ->where('application_code', $code)->first();
+        $payment = EventPayments::where('application_code', $code)->first()->payment_total;
+
+        return response()->json(compact('applicationGroup', 'payment'));
+    }
+
     public function paymentReferenceUpdate(Request $request, $code)
     {
         $application = EventApplications::where('application_code', $code)->first();
@@ -457,6 +518,92 @@ class EventPaymentController extends Controller
             try {
                 Mail::to($email_list)
                     ->later(now()->addMinutes(5), new PaymentNotification($event, $application, $payment_info));
+            } catch (Throwable $ex) {
+                Log::error($ex);
+            }
+
+            return response()->json(["success", "Payment reference has been received"], 200);
+        } catch (Exception $e) {
+            Log::error($e);
+            return response()->json(["error", "Error saving payment reference, please try again."], 400);
+        }
+    }
+
+    public function paymentReferenceUpdateV2(Request $request, $code)
+    {
+        $application = EventApplicationGroup::where('application_code', $code)->first();
+        $file = "";
+
+        $data = $request->all();
+        if ($request->hasFile('reference')) {
+            $file = $request->file('reference');
+            $data['payment_reference'] = $file->store('payment_reference', 'public');
+        }
+
+        try {
+            $payment = EventPayments::where('application_code', $code)->update(
+                [
+                    'payment_total' => $data['payment_total'],
+                    'reference_no' => $data['reference_no'],
+                    'payment_reference' => $data['payment_reference'],
+                    'created' => date("Y-m-d H:i:s"),
+                    'status' => 2,
+                    'bank' => $data['bank'] ?? '',
+                    'account_name' => $data['accountName'] ?? '',
+                    'account_no' => $data['accountNo'] ?? '',
+                    'bank_id' => $data['bankId'] ?? '',
+                ]
+            );
+
+            $token = config('custom.monday_token');
+            $apiUrl = 'https://api.monday.com/v2/file';
+
+            $applicationMondayId = EventApplications::select('monday_id')
+                ->where('event_applications.event_application_group_id', $application->id)->get();
+            foreach ($applicationMondayId as $id) {
+                $query = 'mutation ($file:File!){ add_file_to_column (item_id: ' . $id->monday_id . ', column_id: "files3__1", file: $file) { id } }';
+                Log::info($query);
+
+                $multipartData = [
+                    [
+                        'name'     => 'variables[file]',
+                        'contents' => fopen($file->getPathname(), 'r'), // Open the file as a stream
+                        'filename' => $file->getClientOriginalName(), // Original filename
+                        'Mime-Type' => $file->getMimeType(), // Mime type of the file
+                    ],
+                    [
+                        'name' => 'query',
+                        'contents' => $query
+                    ]
+                ];
+                try {
+                    $guzzleClient = new Client(array('headers' => array('Authorization' => $token)));
+                    $responseContent = $guzzleClient->post($apiUrl, ['multipart' => $multipartData]);
+
+                    $data = json_decode($responseContent->getBody());
+                    if (!empty($data->error_message)) {
+                        $error = new PaymentEntryError();
+                        $error->payment_id = $payment->id;
+                        $error->error = $data->error_message;
+                        $error->save();
+                    }
+                } catch (Throwable $ex) {
+                    $error = new PaymentEntryError();
+
+                    $error->payment_id = $payment->id;
+                    $error->error = $ex;
+                    $error->save();
+                }
+            }
+
+            $payment_info = EventPayments::where('application_code', $code)->first();
+
+            $event = EventGroups::where('event_group_id', $application->event_group_id)->first();
+            $email_list = ResponseEmailList::where('response_email_type', 'PR')->get();
+
+            try {
+                Mail::to($email_list)
+                    ->later(now()->addMinutes(2), new PaymentNotification($event, $application, $payment_info));
             } catch (Throwable $ex) {
                 Log::error($ex);
             }

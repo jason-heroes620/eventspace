@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Models\EventApplicationGroup;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -10,6 +11,7 @@ use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use App\Models\Events;
 use App\Models\EventApplications;
+use App\Models\EventGroups;
 
 class ApplicationRejectedResponse extends Mailable
 {
@@ -19,8 +21,8 @@ class ApplicationRejectedResponse extends Mailable
      * Create a new message instance.
      */
     public function __construct(
-        protected Events $event,
-        protected EventApplications $application,
+        protected EventGroups $event,
+        protected EventApplicationGroup $application,
     ) {}
 
     /**
@@ -29,7 +31,7 @@ class ApplicationRejectedResponse extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: $this->event->event_name . ' - Application Is Rejected',
+            subject: $this->event->event_group . ' - Application Is Rejected',
         );
     }
 
@@ -42,7 +44,7 @@ class ApplicationRejectedResponse extends Mailable
             view: 'mails.application-rejected',
             with: [
                 'contact_person' => $this->application->contact_person,
-                'event_name' => $this->event->event_name,
+                'event_name' => $this->event->event_group,
             ]
         );
     }

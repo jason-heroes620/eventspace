@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Models\EventApplicationGroup;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -9,6 +10,7 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use App\Models\EventApplications;
+use App\Models\EventGroups;
 use App\Models\EventPayments;
 use App\Models\Events;
 
@@ -20,11 +22,10 @@ class PaymentNotification extends Mailable
      * Create a new message instance.
      */
     public function __construct(
-        protected Events $event,
-        protected EventApplications $application,
+        protected EventGroups $event,
+        protected EventApplicationGroup $application,
         protected EventPayments $payment
-    ) {
-    }
+    ) {}
 
     /**
      * Get the message envelope.
@@ -32,7 +33,7 @@ class PaymentNotification extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: $this->event->event_name . ' Payment Received',
+            subject: $this->event->event_group . ' Payment Received',
         );
     }
 
