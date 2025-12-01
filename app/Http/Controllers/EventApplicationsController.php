@@ -76,7 +76,7 @@ class EventApplicationsController extends Controller
                     ->select('event_application_group.id', 'organization', 'contact_person', 'contact_no', 'email', 'event_application_group.application_code', 'event_application_group.status', 'event_applications.created', 'payment_status.status as payment_status')
                     ->leftJoin('event_payments', 'event_application_group.id', '=', 'event_payments.application_id')
                     ->leftJoin('payment_status', 'payment_status.id', '=', 'event_payments.status')
-                    ->where("event_application_group.event_id", $req->eventId)
+                    ->where("event_application_group.event_group_id", $req->eventId)
                     ->orderBy('event_application_group.created', 'DESC')
                     ->paginate(10);
 
