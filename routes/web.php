@@ -90,6 +90,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::delete('/logout', [AuthController::class, 'logout'])->name('logout');
 
     Route::post('/applications/{id}', [EventApplicationsController::class, 'updateStatus'])->name('updateStatus');
+    Route::put('/update-discount/{id}', [EventApplicationsController::class, 'updateDiscount'])->name('updateDiscount');
 
     Route::get('/dailysales', [SalesReportController::class, 'dailysales'])->name('dailysales');
     Route::post('/dailysales', [SalesReportController::class, 'dailysales']);

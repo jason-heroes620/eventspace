@@ -22,6 +22,6 @@ class TermsAndConditionsController extends Controller
 
     private function getTNCById($id)
     {
-        return TermsAndConditions::where('event_id', $id)->first();
+        return TermsAndConditions::where('event_group_id', $id)->first();
     }
 }

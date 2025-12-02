@@ -647,4 +647,17 @@ class EventApplicationsController extends Controller
 
         return compact('subTotal', 'total', 'deposit', 'require_deposit', 'application', 'items');
     }
+
+    public function updateDiscount(Request $req)
+    {
+        $discount = (object)array("discount" => $req->discount);
+
+        try {
+            EventApplicationGroup::where('id', $req->id)->update(['discount_value' => $req->discount, 'discount' => 'Discount']);
+            return $this->sendResponse(['message' => 'Discount updated successfully'], 200);
+        } catch (Exception $e) {
+            Log::error($e);
+            return $this->sendError("There was an error updating discount", "", 405);
+        }
+    }
 }

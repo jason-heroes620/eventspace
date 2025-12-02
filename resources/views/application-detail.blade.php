@@ -108,13 +108,15 @@
             </div>
             @endif
 
-            @if($application->discount)
+      
             <div class="row py-2">
                 <span class="col-12 col-md-4 text-red-500"><strong>Discount (RM)</strong></span>
-                <span class="col-12 col-md-8 py-2 border">{{ number_format((float)$application->discount_value, '2','.',',') }}</span>
+                <div class="col-12 col-md-8 w-full row gap-2" >
+                    <input class="border w-full py-2 col-10" id="updateDiscount" type="text" value="{{ number_format((float)$application->discount_value, '2','.',',') }}">
+                    <button id="update" class="btn btn-warning btn-sm col-1" type="submit">Update</button>
+                </div>
             </div>
-            @endif
-                <div class="row py-2">
+            <div class="row py-2">
                 <span class="col-12 col-md-4"><strong>Total (RM)</strong></span>
                 <span class="col-12 col-md-8 py-2 border">{{ number_format((float)$total, '2','.',',') }}</span>
             </div>
@@ -135,7 +137,6 @@
     <hr>
     <h5>Payment Information</h5>
     <div class="container row">
-
         <div class="row py-2">
             <span class="col-12 col-md-4"><strong>Payment ID</strong></span>
             <span class="col-12 col-md-8 py-2 border">{{ $payment->id }}</span>
@@ -339,6 +340,53 @@
                 },
                 url: "{{ route('updateStatus', [$application->id])}}",
                 method: "POST",
+                data: JSON.stringify(data),
+                contentType: 'application/json',
+                processData: false,
+                success: function(response) {
+                    if (!response.success) {
+                        var errorMsg = '';
+                        $.each(response.error, function(field, errors) {
+                            $.each(errors, function(index, error) {
+                                errorMsg += error + '<br>';
+                            });
+                        });
+                        iziToast.error({
+                            message: errorMsg,
+                            position: 'bottomRight'
+                        });
+                    } else {
+                        iziToast.success({
+                            id: 'question',
+                            zindex: 999,
+                            message: response.data.message,
+                            position: 'bottomRight'
+
+                        });
+                    }
+                    hideLoading();
+                    setTimeout(function() {
+                        location.reload()
+                    }, 2000)
+                },
+                error: function(xhr, status, error) {}
+            });
+        }
+    })
+
+    $("#update").click(function(e) {
+        data = {
+            "discount": $("#updateDiscount").val()
+        }
+        e.preventDefault();
+        if (confirm("Confirm to update discount amount?")) {
+            showLoading();
+            $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: "{{ route('updateDiscount', [$application->id])}}",
+                method: "PUT",
                 data: JSON.stringify(data),
                 contentType: 'application/json',
                 processData: false,
