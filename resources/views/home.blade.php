@@ -17,14 +17,14 @@
                     <h4>{{ $app->total }}</h4>
                 </span>
             </div>
-            <div class="row w-full justify-content-between">
+            {{-- <div class="row w-full justify-content-between">
                 <span class="col-5 text-right text-white py-2">
                     <h6>Paid - {{ $paid }}</h6>
                 </span>
                 <span class="col-7 text-left text-white py-2">
                     <h6>Pending - {{ $pending }}</h6>
                 </span>
-            </div>
+            </div> --}}
         </div>
     </div>
     @elseif ($app->status == 'R')
