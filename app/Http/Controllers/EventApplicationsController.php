@@ -101,7 +101,7 @@ class EventApplicationsController extends Controller
                     'paid_total' => $application[4],
                     'remaining_balance' => $total - $application[4],
                 ]
-            );
+            )->with('eventGroupId', $req->eventGroupId);
         } else {
             $eventGroups = EventGroups::orderBy('event_group', 'ASC')->get();
 
@@ -218,7 +218,6 @@ class EventApplicationsController extends Controller
         } catch (Throwable $ex) {
             Log::error($ex);
         }
-
 
         return (['id' => $id, 'application_code' => $application_code]);
     }
@@ -366,13 +365,6 @@ class EventApplicationsController extends Controller
 
         $result->items = EventApplications::where('event_application_group_id', $id)->get();
 
-        // $detail = array();
-        // if ($payment && $payment->status == 2) {
-        //     $detail = PaymentDetail::where('payment_id', $payment->id)
-        //         ->orderBy('created', 'DESC')
-        //         ->first();
-        //     Log::info($detail);
-        // }
         $paid_total = 0;
         $detail = EventPaymentReference::where('application_code', $result->application_code)->get();
         if ($detail) {
@@ -420,7 +412,7 @@ class EventApplicationsController extends Controller
         }
     }
 
-    public  function setUpdateStatus($status, $post, $applicationGroupId)
+    public function setUpdateStatus($status, $post, $applicationGroupId)
     {
         $user = Auth::user();
         $total = 0.00;

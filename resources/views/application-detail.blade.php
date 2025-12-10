@@ -1,9 +1,9 @@
 @extends('layout')
 @section('content')
 <div class="container mt-4">
-    @if($eventId)
+    @if($eventGroupId)
     <div>
-        <a href="{{ route('event-applications', ['page' => $page, 'eventId' => $eventId]) }}" class="btn btn-primary px-4">
+        <a href="{{ route('event-applications', ['page' => $page, 'eventGroupId' => $eventGroupId]) }}" class="btn btn-primary px-4">
             < Back</a>
     </div>
     @else
