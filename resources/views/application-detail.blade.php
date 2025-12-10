@@ -85,6 +85,7 @@
                         <tr>
                             <th>Event Date</th>
                             <th>Booth Type</th>
+                            <th>Preferred Booth</th>
                             <th>No. of Booths</th>
                             <th class="text-right">Amount (RM)</th>
                         </tr>
@@ -94,6 +95,7 @@
                         <tr>
                             <td>{{ $item->event_date }}</td>
                             <td>{{ $item->booth_type }}</td>
+                            <td>{{ $item->preferred_booth }}</td>
                             <td class="text-right">{{ $item->booth_qty }}</td>
                             <td class="text-right">{{ number_format((float)$item->subTotal, '2','.',',') }}</td>
                         </tr>
@@ -107,7 +109,16 @@
                 <span class="col-12 col-md-8 py-2 border">{{ number_format((float)$deposit, '2','.',',') }}</span>
             </div>
             @endif
-
+            @if ($downpayment)
+            <div class="row py-2">
+                <span class="col-12 col-md-4"><strong>Downpayment (RM)</strong></span>
+                <span class="col-12 col-md-8 py-2 border">{{ number_format((float)$downpayment, '2','.',',') }}</span>
+            </div>
+            <div class="row py-2">
+                <span class="col-12 col-md-4"><strong>Balance (RM)</strong></span>
+                <span class="col-12 col-md-8 py-2 border">{{ number_format((float)$balance, '2','.',',') }}</span>
+            </div>
+            @endif
       
             <div class="row py-2">
                 <span class="col-12 col-md-4 text-red-500"><strong>Discount (RM)</strong></span>
@@ -137,15 +148,15 @@
     <hr>
     <h5>Payment Information</h5>
     <div class="container row">
-        <div class="row py-2">
+        {{-- <div class="row py-2">
             <span class="col-12 col-md-4"><strong>Payment ID</strong></span>
             <span class="col-12 col-md-8 py-2 border">{{ $payment->id }}</span>
         </div>
         <div class="row py-2">
             <span class="col-12 col-md-4"><strong>Reference No.</strong></span>
             <span class="col-12 col-md-8 py-2 border">{{ $payment->reference_no }}</span>
-        </div>
-        @if($payment_detail)
+        </div> --}}
+        {{-- @if($payment_detail)
         <div class="row py-2">
             <span class="col-12 col-md-4"><strong>Payment Total (RM)</strong></span>
             <span class="col-12 col-md-8 py-2 border">{{ number_format((float)$payment->payment_total, '2','.',',') }}</span>
@@ -169,24 +180,52 @@
             <span class="col-12 col-md-4"><strong>Payment Reference</strong></span>
             <a href={{ $payment->path }} target="_blank"  class="col-12 col-md-8 py-2">View File</a>
         </div>
+        @endif --}}
+        @if($payment_detail)
+        <table class="table table-auto border">
+            <thead>
+                <tr>
+                    <th>Payment Reference No.</th>
+                    <th>Bank</th>
+                    <th>Account Name</th>
+                    <th>IC / Company SSM No.</th>
+                    <th>Account No.</th>
+                    <th style="text-align: right">Amount (RM)</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($payment_detail as $d)
+                <tr>
+                    <td>{{ $d->reference_no }}</td>
+                    <td>{{ $d->bank }}</td>
+                    <td>{{ $d->account_name }}</td>
+                    <td>{{ $d->bank_id }}</td>
+                    <td>{{ $d->account_no }}</td>
+                    <td class="text-right" style=" text-align: right">{{ number_format((float)$d->payment_amount, '2','.',',') }}</td>
+                    <td><a href={{ $d->path }} target="_blank"  class="col-12 col-md-8 py-2">View</a></td>
+                </tr>
+                @endforeach
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td style="font-weight: bold">Total Paid</td>
+                    <td class="text-right" style="font-weight: bold; text-align: right">{{ number_format((float)$paid_total, '2','.',',') }}</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td style="font-weight: bold">Balance</td>
+                    <td class="text-right" style="font-weight: bold; text-align: right">{{ number_format((float)$remaining_balance, '2','.',',') }}</td>
+                </tr>
+            </tbody>
+         </table>
         @endif
-
-         <div class="row py-2 flex items-center">
-            <span class="col-12 col-md-4"><strong>Bank</strong></span>
-            <span class="col-12 col-md-8 py-2 border">{{ $payment->bank }}</span>
-        </div>
-        <div class="row py-2">
-            <span class="col-12 col-md-4"><strong>Account Name</strong></span>
-            <span class="col-12 col-md-8 py-2 border">{{ $payment->account_name }}</span>
-        </div>
-        <div class="row py-2">
-            <span class="col-12 col-md-4"><strong>IC / Company SSM No.</strong></span>
-            <span class="col-12 col-md-8 py-2 border">{{ $payment->bank_id }}</span>
-        </div>
-         <div class="row py-2">
-            <span class="col-12 col-md-4"><strong>Account No.</strong></span>
-            <span class="col-12 col-md-8 py-2 border">{{ $payment->account_no }}</span>
-        </div>
+        
     </div>
     <hr>
     @endif

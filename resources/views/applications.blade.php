@@ -2,10 +2,10 @@
 @section('content')
 <div class="container mt-2">
     <div class="py-4">
-        <label for="Event" class="pe-2">Event</label>
+        <label for="Event" class="pe-2">Event Group</label>
         <select name="event" id="event" class="py-2">
-            <option value="">Select an event</option>
-            @if($eventId)
+            <option value="">Select Group</option>
+            @if($eventGroupId)
             @php
             $all = ''
             @endphp
@@ -15,9 +15,9 @@
             @endphp
             @endif
             <option {{ $all }} value="{{ route('applications') }}">All</option>
-            @foreach ($events as $event)
+            @foreach ($eventGroups as $eventGroup)
 
-            @if($event->id == $eventId)
+            @if($eventGroup->event_group_id == $eventGroupId)
             @php
             $selected = 'selected'
             @endphp
@@ -26,10 +26,11 @@
             $selected = ''
             @endphp
             @endif
-            <option {{ $selected }} value="{{ route('event-applications', ['eventId' => $event->id]) }}">{{ $event->event_name}}</option>
+            <option {{ $selected }} value="{{ route('event-applications', ['eventGroupId' => $eventGroup->event_group_id]) }}">{{ $eventGroup->event_group}}</option>
             @endforeach
-        </select>
+        </select> 
     </div>
+
     <table class="table table-striped table-condensed table-hover table-sm mb-5">
         <thead>
             <tr class="table-info">
@@ -63,7 +64,7 @@
                 <td class="text-center bg-danger text-white">{{ $data->status }}</td>
                 @endif
                 <td class="text-center">{{ $data->payment_status }}</td>
-                <td><a class="btn btn-sm btn-warning" href="{{ route('application-detail', ['id' => $data->id, 'page' => request()->query('page'), 'event' => $eventId]) }}">view</a></td>
+                <td><a class="btn btn-sm btn-warning" href="{{ route('application-detail', ['id' => $data->id, 'page' => request()->query('page'), 'eventGroupId' => $eventGroupId]) }}">view</a></td>
             </tr>
             @endforeach
         </tbody>

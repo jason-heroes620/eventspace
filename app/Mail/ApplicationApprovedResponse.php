@@ -29,6 +29,8 @@ class ApplicationApprovedResponse extends Mailable
         protected $deposit_amount,
         protected $due_date,
         protected $subTotal,
+        protected $downpayment_amount,
+        protected $balance
     ) {}
 
     /**
@@ -61,6 +63,9 @@ class ApplicationApprovedResponse extends Mailable
                 'discount_value' => $this->application->discount ? $this->application->discount_value : null,
                 'items' => $this->items,
                 'subTotal' => $this->subTotal,
+                'downpayment_amount' => number_format($this->downpayment_amount, 2),
+                'balance' => number_format($this->balance, 2),
+                'balanceAndDeposit' => number_format($this->balance + $this->deposit_amount, 2),
             ]
         );
     }

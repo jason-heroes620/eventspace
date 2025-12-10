@@ -43,6 +43,7 @@ Route::get('EGHLPaymentCallback', [EventPaymentController::class, 'eghlpaymentca
 
 Route::post('applications', [EventApplicationsController::class, 'applications']);
 Route::post('v2/applications', [EventApplicationsController::class, 'applicationsV2']);
+Route::post('v3/applications', [EventApplicationsController::class, 'applicationsV3']);
 Route::get('applications/{id?}', [EventApplicationsController::class, 'applications']);
 
 Route::get('tnc/{id?}', [TermsAndConditionsController::class, 'tnc']);

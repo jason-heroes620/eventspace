@@ -23,7 +23,9 @@ use App\Models\EventCategories;
 use App\Models\ApplicationError;
 use App\Models\EventApplicationGroup;
 use App\Models\EventDeposit;
+use App\Models\EventDownpayment;
 use App\Models\EventGroups;
+use App\Models\EventPaymentReference;
 use App\Models\PaymentDetail;
 use App\Models\ResponseEmailList;
 use DateInterval;
@@ -54,43 +56,85 @@ class EventApplicationsController extends Controller
 
                 $item->event_date = Events::where('id', $item->event_id)->first()->event_date;
                 $item->booth_type = $booth->booth_type;
-
-                $event = Events::where('id', $item->event_id)->first();
-                if ($event->require_deposit == 'Y') {
-                    $require_deposit = true;
-                    $deposit =  $deposit = EventDeposit::whereNull('end_date')->where('event_deposit_status', true)->where('start_date', '<=', date('Y-m-d'))->first()->event_deposit;
-                    $total += $deposit;
-                }
             }
 
             if ($application[0]->discount) {
                 $total -= $application[0]->discount_value;
             }
 
-            return view('application-detail', ['application' => $application[0], 'categories' => $categories, 'booth' => $booth, 'booth_price' => $event_booth->display_price, 'total' => $total, 'payment' => $application[2], 'payment_detail' => $application[3], 'page' => $application[1], 'eventId' => $req->event, 'require_deposit' => $require_deposit, 'deposit' => $deposit]);
-        } else {
-            $events = Events::all();
-            $event = '';
-            if (isset($req->eventId)) {
-                $applications = DB::table('event_application_group')
-                    ->select('event_application_group.id', 'organization', 'contact_person', 'contact_no', 'email', 'event_application_group.application_code', 'event_application_group.status', 'event_application_group.created', 'payment_status.status as payment_status')
-                    ->leftJoin('event_payments', 'event_application_group.id', '=', 'event_payments.application_id')
-                    ->leftJoin('payment_status', 'payment_status.id', '=', 'event_payments.status')
-                    ->where("event_application_group.event_group_id", $req->eventId)
-                    ->orderBy('event_application_group.created', 'DESC')
-                    ->paginate(10);
 
-                $event = $req->eventId;
-            } else {
-                // $applications = EventApplications::orderBy('created', 'DESC')->paginate(10);
-                $applications = DB::table('event_application_group')
-                    ->select('event_application_group.id', 'organization', 'contact_person', 'contact_no', 'email', 'event_application_group.application_code', 'event_application_group.status', 'event_application_group.created', 'payment_status.status as payment_status')
-                    ->leftJoin('event_payments', 'event_application_group.id', '=', 'event_payments.application_id')
-                    ->leftJoin('payment_status', 'payment_status.id', '=', 'event_payments.status')
-                    ->orderBy('event_application_group.created', 'DESC')
-                    ->paginate(10);
+            $downpayment_amount = 0;
+            $balance = 0;
+            if ($this->getDownpayment()) {
+                $downpayment = $this->getDownpayment();
+                if ($downpayment->downpayment_type === 'P') {
+                    $downpayment_amount = ($total * $downpayment->downpayment / 100);
+                } else {
+                    $downpayment_amount = $downpayment->downpayment_value;
+                }
+                $balance = $total - $downpayment_amount;
             }
-            return view('applications', compact('applications', 'events'))->with('eventId', $event);
+
+            $event = Events::where('id', $item->event_id)->first();
+            if ($event->require_deposit == 'Y') {
+                $require_deposit = true;
+                $deposit =  $deposit = EventDeposit::whereNull('end_date')->where('event_deposit_status', true)->where('start_date', '<=', date('Y-m-d'))->first()->event_deposit;
+                $total += $deposit;
+            }
+
+            return view(
+                'application-detail',
+                [
+                    'application' => $application[0],
+                    'categories' => $categories,
+                    'booth' => $booth,
+                    'booth_price' => $event_booth->display_price,
+                    'total' => $total,
+                    'payment' => $application[2],
+                    'payment_detail' => $application[3],
+                    'page' => $application[1],
+                    'eventId' => $req->event,
+                    'require_deposit' => $require_deposit,
+                    'deposit' => $deposit,
+                    'downpayment' => $downpayment_amount,
+                    'balance' => $balance,
+                    'paid_total' => $application[4],
+                    'remaining_balance' => $total - $application[4],
+                ]
+            );
+        } else {
+            $eventGroups = EventGroups::orderBy('event_group', 'ASC')->get();
+
+            $query = DB::table('event_application_group')
+                ->select('event_application_group.id', 'organization', 'contact_person', 'contact_no', 'email', 'event_application_group.application_code', 'event_application_group.status', 'event_application_group.created', 'payment_status.status as payment_status')
+                ->leftJoin('event_payments', 'event_application_group.id', '=', 'event_payments.application_id')
+                ->leftJoin('payment_status', 'payment_status.id', '=', 'event_payments.status');
+
+            if (isset($req->eventGroupId)) {
+
+                $query->where("event_application_group.event_group_id", $req->eventGroupId);
+
+
+                // $require_deposit = Events::where('id', $req->eventGroupId)->first()->require_deposit;
+                // $deposit = EventDeposit::whereNull('end_date')->where('event_deposit_status', true)->where('start_date', '<=', date('Y-m-d'))->first()->event_deposit;
+                // foreach ($applications as $application) {
+                //     $booth = EventApplications::select('booth_qty', 'no_of_days', 'price')
+                //         ->leftJoin('events_booths', 'events_booths.id', '=', 'event_applications.booth_id')
+                //         ->where('event_applications.event_application_group_id', $application->id)
+                //         ->get();
+            }
+            // } else {
+            //     $applications = DB::table('event_application_group')
+            //         ->select('event_application_group.id', 'organization', 'contact_person', 'contact_no', 'email', 'event_application_group.application_code', 'event_application_group.status', 'event_application_group.created', 'payment_status.status as payment_status')
+            //         ->leftJoin('event_payments', 'event_application_group.id', '=', 'event_payments.application_id')
+            //         ->leftJoin('payment_status', 'payment_status.id', '=', 'event_payments.status')
+            //         ->orderBy('event_application_group.created', 'DESC')
+            //         ->paginate(10);
+            // }
+            $applications = $query->orderBy('event_application_group.created', 'DESC')
+                ->paginate(10);
+
+            return view('applications', compact('applications', 'eventGroups'))->with('eventGroupId', $req->eventGroupId);
         }
     }
 
@@ -111,6 +155,19 @@ class EventApplicationsController extends Controller
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = $this->addApplicationV2($req->post());
+            return $this->sendResponse($data, 200);
+        } else if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            $data = $this->getApplicationV2($req->id);
+            return $this->sendResponse($data, 200);
+        } else {
+            return $this->sendError('', ['error' => 'Allowed headers POST, GET'], 405);
+        }
+    }
+
+    public function applicationsV3(Request $req)
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $data = $this->addApplicationV3($req->post());
             return $this->sendResponse($data, 200);
         } else if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $data = $this->getApplicationV2($req->id);
@@ -220,6 +277,61 @@ class EventApplicationsController extends Controller
         return (['id' => $id, 'application_code' => $application_code]);
     }
 
+    private function addApplicationV3($application)
+    {
+        $info = new EventApplicationGroup();
+
+        $info->event_group_id = $application['eventGroupId'];
+        $info->contact_person = $application['contactPerson'];
+        $info->contact_no = $application['contactNo'];
+        $info->email = $application['email'];
+        $info->organization = $application['organization'];
+        $info->registration = $application['companyRegistration'];
+        $info->participants = $application['participants'];
+        $info->social_media_account = empty($application['socialMediaAccount']) ? '' : $application['socialMediaAccount'];
+        $info->description = $application['productDescription'];
+        $info->requirements = empty($application['requirements']) ? '' : $application['requirements'];
+        $info->plug = $application['plugPoints'] == 'Yes' ? 'Y' : 'N';
+        $application_code =
+            $this->getApplicationCode(6);
+        $info->application_code = $application_code;
+
+        $info->save();
+        $id = $info->id;
+
+        if (isset($application['categoryId'])) {
+            foreach ($application['categoryId'] as $cat) {
+                $application_categories = new ApplicationCategories;
+                $application_categories->application_id = $id;
+                $application_categories->category_id = $cat;
+                $application_categories->save();
+            }
+        }
+
+        $applicationItems = new EventApplications();
+        foreach (json_decode($application['items']) as $item) {
+            $applicationItems = new EventApplications();
+            $applicationItems->event_application_group_id = $id;
+            $applicationItems->event_id = $item->eventId;
+            $applicationItems->booth_id = $item->eventBoothId;
+            $applicationItems->booth_qty = $item->numberOfBooths;
+            $applicationItems->no_of_days = $this->getEventDays($item->eventId);
+            $applicationItems->preferred_booth = $item->preferredBooth;
+
+            $applicationItems->save();
+        }
+
+        try {
+            $this->sendApplicationReceivedEmail($id);
+            // $this->handleMondayMutation($id);
+            $this->handleMondayMutationV2($id);
+        } catch (Throwable $ex) {
+            Log::error($ex);
+        }
+
+        return (['id' => $id, 'application_code' => $application_code]);
+    }
+
     private function getApplication($id, $page = null)
     {
         $result = EventApplications::where('id', $id)->first();
@@ -254,18 +366,26 @@ class EventApplicationsController extends Controller
 
         $result->items = EventApplications::where('event_application_group_id', $id)->get();
 
-        $detail = array();
-        if ($payment && $payment->status == 2) {
-            $detail = PaymentDetail::where('payment_id', $payment->id)
-                ->orderBy('created', 'DESC')
-                ->first();
-            Log::info($detail);
+        // $detail = array();
+        // if ($payment && $payment->status == 2) {
+        //     $detail = PaymentDetail::where('payment_id', $payment->id)
+        //         ->orderBy('created', 'DESC')
+        //         ->first();
+        //     Log::info($detail);
+        // }
+        $paid_total = 0;
+        $detail = EventPaymentReference::where('application_code', $result->application_code)->get();
+        if ($detail) {
+            foreach ($detail as $d) {
+                $d['path'] =  asset('storage/' . $d->payment_reference);
+                $paid_total += $d->payment_amount;
+            }
         }
 
         if ($page) {
-            return [$result, $page, $payment, $detail];
+            return [$result, $page, $payment, $detail, $paid_total];
         }
-        return [$result, 1, $payment, $detail];
+        return [$result, 1, $payment, $detail, $paid_total];
     }
 
     private function getEventDays($event_id)
@@ -333,22 +453,30 @@ class EventApplicationsController extends Controller
                 ->get();
 
             if ($payment_exists && $status->status === 'A') {
-                // $event_booth = (new EventBoothController)->getEventBoothPriceById($application->event_id, $application->booth_id);
-                // $subTotal = (float)((int)$application->booth_qty * (int)$application->no_of_days * (int)$event_booth->price);
-                // $total += $subTotal;
-
                 $applicationBooth = $this->getApplicationBoothByGroupId($applicationGroupId);
                 $total += $applicationBooth['total'];
                 $subTotal = $applicationBooth['subTotal'];
 
+                if ($applicationGroup->discount) {
+                    $total -= $applicationGroup->discount_value;
+                }
+
+                $downpayment_amount = 0;
+                $balance = 0;
+                if ($this->getDownpayment()) {
+                    $downpayment = $this->getDownpayment();
+                    if ($downpayment->downpayment_type === 'P') {
+                        $downpayment_amount = ($total * $downpayment->downpayment / 100);
+                    } else {
+                        $downpayment_amount = $downpayment->downpayment_value;
+                    }
+                    $balance = $total - $downpayment_amount;
+                }
+
                 if ($applicationBooth['require_deposit']) {
                     $require_deposit = $applicationBooth['require_deposit'];
                     $deposit = $applicationBooth['deposit'];
-                }
-
-
-                if ($applicationGroup->discount) {
-                    $total -= $applicationGroup->discount_value;
+                    $total += $deposit;
                 }
 
                 $items = $applicationBooth['items'];
@@ -374,12 +502,12 @@ class EventApplicationsController extends Controller
                 $reference_link = config('custom.payment_redirect_host') . "/payment-reference/" . $applicationGroup->application_code;
 
                 // send successful email
-                $this->sendNotificationEmail($status->status, $event, $applicationGroup, $payment_link, $total, $reference_link, $items, $require_deposit, $deposit, $subTotal);
+                $this->sendNotificationEmail($status->status, $event, $applicationGroup, $payment_link, $total, $reference_link, $items, $require_deposit, $deposit, $subTotal, $downpayment_amount, $balance);
             }
 
             if ($status->status === 'R') {
                 // send rejected email
-                $this->sendNotificationEmail($status->status, $event, $applicationGroup, '', '', '', '', '', '', '');
+                $this->sendNotificationEmail($status->status, $event, $applicationGroup, '', '', '', '', '', '', '', '', '');
             }
             return $status->message;
         } catch (Exception $ex) {
@@ -404,7 +532,7 @@ class EventApplicationsController extends Controller
         }
     }
 
-    private function sendNotificationEmail($type, $event, $application, $payment_link, $total, $reference_link, $items, $require_deposit, $deposit, $subTotal)
+    private function sendNotificationEmail($type, $event, $application, $payment_link, $total, $reference_link, $items, $require_deposit, $deposit, $subTotal, $downpayment_amount, $balance)
     {
         try {
             $bcc = ['admin.test@heroes.my'];
@@ -426,6 +554,8 @@ class EventApplicationsController extends Controller
                             $deposit,
                             $event->due_date,
                             $subTotal,
+                            $downpayment_amount,
+                            $balance
                         )
                     );
                 // ->later(now(), new ApplicationApprovedResponse($event, $application, $payment_link, $total, $reference_link));
@@ -582,6 +712,7 @@ class EventApplicationsController extends Controller
                         "text98" => $applicationGroup->description,
                         "label6__1" => ["index" => $booth],
                         "dropdown8__1" => $applicationGroup->plug == 'Y' ? ["ids" => [1]] : ["ids" => [2]],
+                        "mkyg3s82" => $app->preferred_booth
                     ]
                 )
             ];
@@ -616,7 +747,7 @@ class EventApplicationsController extends Controller
         }
     }
 
-    private function getApplicationBoothByGroupId($id)
+    public function getApplicationBoothByGroupId($id)
     {
         $total = 0;
         $deposit = 0;
@@ -643,7 +774,7 @@ class EventApplicationsController extends Controller
             }
             $items[] = $item;
         }
-        $total += $deposit;
+
 
         return compact('subTotal', 'total', 'deposit', 'require_deposit', 'application', 'items');
     }
@@ -659,5 +790,10 @@ class EventApplicationsController extends Controller
             Log::error($e);
             return $this->sendError("There was an error updating discount", "", 405);
         }
+    }
+
+    public function getDownpayment()
+    {
+        return EventDownpayment::whereNull('expiry_date')->where('downpayment_status', true)->where('effective_date', '<=', date('Y-m-d'))->first();
     }
 }

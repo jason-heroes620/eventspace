@@ -29,6 +29,9 @@
                     <li class="nav-item">
                         <a class="nav-link @if(Route::currentRouteName() == 'applications') active @endif" aria-current="page" href="{{ route('applications')}}">Applications</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link @if(Route::currentRouteName() == 'reports') active @endif" aria-current="page" href="{{ route('reports')}}">Reports</a>
+                    </li>
                     {{-- <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle  @if(Route::currentRouteName() == 'dailysales' || Route::currentRouteName() == 'vendorsales') active @endif" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             Event Sales

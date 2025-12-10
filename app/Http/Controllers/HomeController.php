@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\EventApplicationGroup;
 use App\Models\EventApplications;
+use App\Models\EventPayments;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -17,17 +18,16 @@ class HomeController extends Controller
             ->groupBy('status')
             ->get();
 
-        $paid = EventApplicationGroup::leftJoin('event_payments', 'event_payments.application_id', 'event_application_group.id')
-            ->where('event_application_group.status', 'A')
+        $paid = EventPayments::select('application_id')
             ->where('event_payments.status', 2)
+            ->whereIn('event_payments.application_id', EventApplicationGroup::where('status', 'A')->get()->pluck('id'))
             ->distinct()
-            ->count('event_application_group.id');
-        $pending = EventApplicationGroup::select(DB::raw('count(*) as pending'))
-            ->leftJoin('event_payments', 'event_payments.application_id', 'event_application_group.id')
-            ->where('event_application_group.status', 'A')
-            ->where('event_payments.status', 1)
+            ->count('event_payments.application_id');
+
+        $pending = EventPayments::where('event_payments.status', 1)
+            ->whereIn('event_payments.application_id', EventApplicationGroup::where('status', 'A')->get()->pluck('id'))
             ->distinct()
-            ->count('event_application_group.id');
+            ->count('event_payments.application_id');
         return view('home', compact('applications', 'paid', 'pending'));
     }
 }

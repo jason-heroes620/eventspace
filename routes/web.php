@@ -31,10 +31,13 @@ use Intervention\Image\ImageManager;
 
 
 use App\Http\Controllers\ExcelImportController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SalesReportController;
 use App\Mail\ApplicationApprovedResponse;
 use App\Mail\ApplicationRejectedResponse;
+use App\Models\EventApplicationGroup;
 use App\Models\EventDeposit;
+use App\Models\EventGroups;
 use App\Models\Products;
 use Illuminate\Support\Facades\Artisan;
 
@@ -85,7 +88,7 @@ Route::group(['middleware' => 'guest'], function () {
 Route::group(['middleware' => 'auth'], function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::get('/applications', [EventApplicationsController::class, 'index'])->name('applications');
-    Route::get('/applications/event/{eventId}', [EventApplicationsController::class, 'index'])->name('event-applications');
+    Route::get('/applications/event/{eventGroupId?}/{eventId?}', [EventApplicationsController::class, 'index'])->name('event-applications');
     Route::get('/applications/{id}', [EventApplicationsController::class, 'index'])->name('application-detail');
     Route::delete('/logout', [AuthController::class, 'logout'])->name('logout');
 
@@ -97,49 +100,115 @@ Route::group(['middleware' => 'auth'], function () {
 
     Route::get('/vendorsales', [SalesReportController::class, 'vendorsales'])->name('vendorsales');
 
+    Route::get('/reports', [ReportController::class, 'reports'])->name('reports');
 
-    Route::get('/compressed-image', function () {
-        $manager = new ImageManager(
-            new Intervention\Image\Drivers\Gd\Driver()
-        );
-        $products = DB::table('products')->where('compressed_product_image', null)->where('product_image', '!=', '')->orderBy('product_name')->get();
+    // Route::get('/compressed-image', function () {
+    //     $manager = new ImageManager(
+    //         new Intervention\Image\Drivers\Gd\Driver()
+    //     );
+    //     $products = DB::table('products')->where('compressed_product_image', null)->where('product_image', '!=', '')->orderBy('product_name')->get();
 
-        foreach ($products as $product) {
-            // dd($product);
-            print_r($product->product_name . '<br />');
-            $image = asset('storage') . '/img/' . $product->product_image;
-            $image_name = explode('/', $image);
-            //dd($image_name);
-            // dd($image_name);
-            $path = '/public/img/' . $image_name[sizeof($image_name) - 2] . '/compressed/';
-            // dd($path);
-            try {
-                if (!Storage::exists($path)) {
-                    Storage::makeDirectory($path);
-                } else {
-                    print_r('path exist' . '<br />');
-                }
-            } catch (Exception $ex) {
-                dd($ex);
-            }
+    //     foreach ($products as $product) {
+    //         // dd($product);
+    //         print_r($product->product_name . '<br />');
+    //         $image = asset('storage') . '/img/' . $product->product_image;
+    //         $image_name = explode('/', $image);
+    //         //dd($image_name);
+    //         // dd($image_name);
+    //         $path = '/public/img/' . $image_name[sizeof($image_name) - 2] . '/compressed/';
+    //         // dd($path);
+    //         try {
+    //             if (!Storage::exists($path)) {
+    //                 Storage::makeDirectory($path);
+    //             } else {
+    //                 print_r('path exist' . '<br />');
+    //             }
+    //         } catch (Exception $ex) {
+    //             dd($ex);
+    //         }
 
-            $imageM = $manager->read(public_path() . '/storage/img/' . $image_name[sizeof($image_name) - 2] . '/' . $image_name[sizeof($image_name) - 1]);
-            //$new_path = $path . 'compressed_' . $image_name[sizeof($image_name) - 1];
-            // dd(public_path());
-            $imageM->resize(300, 200, function ($const) {
-                $const->aspectRatio();
-            })->save(public_path() . '/storage/img/' . $image_name[sizeof($image_name) - 2] . '/compressed/compressed_' . $image_name[sizeof($image_name) - 1]);
+    //         $imageM = $manager->read(public_path() . '/storage/img/' . $image_name[sizeof($image_name) - 2] . '/' . $image_name[sizeof($image_name) - 1]);
+    //         //$new_path = $path . 'compressed_' . $image_name[sizeof($image_name) - 1];
+    //         // dd(public_path());
+    //         $imageM->resize(300, 200, function ($const) {
+    //             $const->aspectRatio();
+    //         })->save(public_path() . '/storage/img/' . $image_name[sizeof($image_name) - 2] . '/compressed/compressed_' . $image_name[sizeof($image_name) - 1]);
 
-            DB::table('products')
-                ->where('id', $product->id)
-                ->update(['compressed_product_image' => $image_name[sizeof($image_name) - 2] . '/compressed/' . 'compressed_' . $image_name[sizeof($image_name) - 1]]);
-        }
-    });
+    //         DB::table('products')
+    //             ->where('id', $product->id)
+    //             ->update(['compressed_product_image' => $image_name[sizeof($image_name) - 2] . '/compressed/' . 'compressed_' . $image_name[sizeof($image_name) - 1]]);
+    //     }
+    // });
 
 
     // Route::view('/{any?}', 'dashboard')->where('any', '.*');
 
     // Route::get('/preview-mail', function () {
+    //     $applicationGroupId = 51;
+    //     $total = 0.00;
+
+
+    //     $applicationGroup = EventApplicationGroup::where('id', $applicationGroupId)->first();
+
+    //     $event = EventGroups::where('event_group_id', $applicationGroup->event_group_id)->first();
+
+
+
+    //     $payment_exists = EventPayments::where('application_id', $applicationGroupId)
+    //         ->where('application_code', $applicationGroup->application_code)
+    //         ->get();
+
+
+    //     // $event_booth = (new EventBoothController)->getEventBoothPriceById($application->event_id, $application->booth_id);
+    //     // $subTotal = (float)((int)$application->booth_qty * (int)$application->no_of_days * (int)$event_booth->price);
+    //     // $total += $subTotal;
+
+    //     $applicationBooth = (new EventApplicationsController)->getApplicationBoothByGroupId($applicationGroupId);
+    //     $total += $applicationBooth['total'];
+    //     $subTotal = $applicationBooth['subTotal'];
+
+
+    //     if ($applicationGroup->discount) {
+    //         $total -= $applicationGroup->discount_value;
+    //     }
+
+
+
+    //     $downpayment_amount = 0;
+    //     $balance = 0;
+    //     if ((new EventApplicationsController)->getDownpayment()) {
+    //         $downpayment = (new EventApplicationsController)->getDownpayment();
+    //         if ($downpayment->downpayment_type === 'P') {
+    //             $downpayment_amount = ($total * $downpayment->downpayment / 100);
+    //         } else {
+    //             $downpayment_amount = $downpayment->downpayment_value;
+    //         }
+    //         $balance = $total - $downpayment_amount;
+    //     }
+
+    //     if ($applicationBooth['require_deposit']) {
+    //         $require_deposit = $applicationBooth['require_deposit'];
+    //         $deposit = $applicationBooth['deposit'];
+    //         $total += $deposit;
+    //     }
+
+    //     $items = $applicationBooth['items'];
+
+    //     $dateTime = new DateTime($applicationGroup->created);
+    //     $interval = new DateInterval('P7D');
+    //     $applicationGroup->due_date = $dateTime->add($interval)->format('d M Y');
+
+    //     $applicationGroup->payment = number_format($total, 2, '.', '');
+
+    //     $id = EventPayments::where('application_code', $applicationGroup->application_code)->first()->id;
+    //     $payment_link = config('custom.payment_redirect_host') . "/payment/" . $id . "/code/" . $applicationGroup->application_code;
+    //     $reference_link = config('custom.payment_redirect_host') . "/payment-reference/" . $applicationGroup->application_code;
+
+    //     // send successful email        
+    //     return new ApplicationApprovedResponse($event, $applicationGroup, $payment_link, $total, $reference_link, $require_deposit,  $items, $deposit, $applicationGroup->due_date, $subTotal, $downpayment_amount, $balance);
+    // });
+
+    // Route::get('/preview-reject-mail', function () {
     //     $application_id = 51;
     //     $total = 0.00;
     //     $application = EventApplications::where('id', $application_id)
@@ -148,48 +217,8 @@ Route::group(['middleware' => 'auth'], function () {
     //     $link = config('custom.payment_redirect_host') . '/payment/' . $application->application_code;
     //     $application->reference_link = config('custom.payment_redirect_host') . '/payment-reference/' . $application->application_code;
 
-    //     $event_booth = (new EventBoothController)->getEventBoothPriceById($application->event_id, $application->booth_id);
-    //     $subTotal = (float)((int)$application->booth_qty * (int)$application->no_of_days * (int)$event_booth->price);
-    //     $total += $subTotal;
-
-    //     $event->due_date = new DateTime($application->created)->modify('+7 days')->format('D M Y');
-
-    //     $booth = EventBooth::select('booth_type')->leftJoin('booths', 'booths.id', 'events_booths.booth_id')
-    //         ->where('events_booths.id', $application->booth_id)
-    //         ->first();
-
-    //     $deposit = EventDeposit::whereNull('end_date')->where('event_deposit_status', true)->where('start_date', '<=', date('Y-m-d'))->first();
-    //     $application->deposit = $deposit;
-    //     $application->subTotal = $subTotal;
-    //     $application->deposit_amount = $deposit->event_deposit;
-
-    //     if ($deposit) {
-    //         $total += $deposit->event_deposit;
-    //     }
-    //     $application->booth = $booth->booth_type;
-    //     Log::info($booth->booth_type);
-    //     Log::info("total");
-    //     Log::info($total);
-    //     if ($application->discount) {
-    //         Log::info('discount' . $application->discount_value);
-    //         $total -= $application->discount_value;
-    //         Log::info($total);
-    //     }
-    //     $application->payment = number_format($total, 2, '.', '');
-    //     return new ApplicationApprovedResponse($event, $application, $link, $total, $application->reference_link);
+    //     return new ApplicationRejectedResponse($event, $application);
     // });
-
-    Route::get('/preview-reject-mail', function () {
-        $application_id = 51;
-        $total = 0.00;
-        $application = EventApplications::where('id', $application_id)
-            ->first();
-        $event = Events::where('id', $application->event_id)->first();
-        $link = config('custom.payment_redirect_host') . '/payment/' . $application->application_code;
-        $application->reference_link = config('custom.payment_redirect_host') . '/payment-reference/' . $application->application_code;
-
-        return new ApplicationRejectedResponse($event, $application);
-    });
 });
 
 // Route::get('/test-image', function () {

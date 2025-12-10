@@ -166,11 +166,17 @@
                         <td>{{ number_format($item->subTotal, 2) }}</td>
                     </tr>
                     @endforeach
+                    @if($discount)
+                    <tr>
+                        <td colspan="3">Discount</td>
+                        <td>{{ number_format($discount_value, 2) }}</td>
+                    </tr>
+                    @endif
                 </table>
 
             </div>
             <div>
-                <p> To finalise your participation and secure your booth, please complete the full payment of <b>RM {{ $payment }}</b> within 7 days of receiving this email.</p>
+                <p> To finalise your participation and secure your booth, please pay a downpayment of <b>RM {{ $downpayment_amount }}</b> within 3 days of receiving this email and remaining balance of <b>RM {{ $balanceAndDeposit }}</b> within 14 days before the event date.</p>
             </div>
             
             <div  class="booth-content">
@@ -185,8 +191,12 @@
                             <td class='table_amount'>{{ $deposit_amount }}</td>
                         </tr>                 
                         <tr>
-                            <td style="padding: 2px 10px">Balance Payment</td>                     
-                            <td class='table_amount'>{{ number_format($subTotal, 2) }}</td>
+                            <td style="padding: 2px 10px">Downpayment</td>                         
+                            <td class='table_amount'>{{ $downpayment_amount }}</td>
+                        </tr>                 
+                        <tr>
+                            <td style="padding: 2px 10px">Balance</td>                     
+                            <td class='table_amount'>{{ number_format($balance, 2) }}</td>
                         </tr>
                         @if($discount)
                             <tr>
@@ -195,8 +205,8 @@
                             </tr>
                         @endif
                         <tr>
-                            <td class='tr_total'>Total Payment</td>                     
-                            <td class='table_amount tr_total'>{{ $payment }}</td>
+                            <td class='tr_total'><b>Total Payment</b></td>                     
+                            <td class='table_amount tr_total'><b>{{ $payment }}</b></td>
                         </tr>
                     </table>
                 @endif

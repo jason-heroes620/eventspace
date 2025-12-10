@@ -22,6 +22,7 @@ use App\Models\EventApplicationGroup;
 use App\Models\EventApplications;
 use App\Models\EventDeposit;
 use App\Models\EventGroups;
+use App\Models\EventPaymentReference;
 use Exception;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Log;
@@ -471,6 +472,7 @@ class EventPaymentController extends Controller
                 ]
             );
 
+
             $token = config('custom.monday_token');
             $apiUrl = 'https://api.monday.com/v2/file';
 
@@ -543,17 +545,28 @@ class EventPaymentController extends Controller
         try {
             $payment = EventPayments::where('application_code', $code)->update(
                 [
-                    'payment_total' => $data['payment_total'],
-                    'reference_no' => $data['reference_no'],
-                    'payment_reference' => $data['payment_reference'],
+                    // 'payment_total' => $data['payment_total'],
+                    // 'reference_no' => $data['reference_no'],
+                    // 'payment_reference' => $data['payment_reference'],
                     'created' => date("Y-m-d H:i:s"),
                     'status' => 2,
-                    'bank' => $data['bank'] ?? '',
-                    'account_name' => $data['accountName'] ?? '',
-                    'account_no' => $data['accountNo'] ?? '',
-                    'bank_id' => $data['bankId'] ?? '',
+                    // 'bank' => $data['bank'] ?? '',
+                    // 'account_name' => $data['accountName'] ?? '',
+                    // 'account_no' => $data['accountNo'] ?? '',
+                    // 'bank_id' => $data['bankId'] ?? '',
                 ]
             );
+
+            EventPaymentReference::create([
+                'application_code' => $code,
+                'reference_no' => $data['reference_no'],
+                'payment_reference' => $data['payment_reference'],
+                'bank' => $data['bank'] ?? '',
+                'account_name' => $data['accountName'] ?? '',
+                'account_no' => $data['accountNo'] ?? '',
+                'bank_id' => $data['bankId'] ?? '',
+                'payment_amount' => $data['payment_total']
+            ]);
 
             $token = config('custom.monday_token');
             $apiUrl = 'https://api.monday.com/v2/file';
