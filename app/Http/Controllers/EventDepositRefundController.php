@@ -33,13 +33,15 @@ class EventDepositRefundController extends Controller
         return back()->withErrors(['document' => 'File upload failed.']);
     }
 
-    public function sendRefundEmail($code)
+    public function sendRefundEmail(Request $request, $code)
     {
         $application = EventApplicationGroup::where('application_code', $code)->first();
         $payment = EventPaymentReference::where('application_code', $code)
             ->where('bank', "!=", null)
             ->first();
-        $deposit = EventDepositRefund::where('application_code', $code)->first();
+        $deposit = EventDepositRefund::where('application_code', $code)
+            ->where('event_deposit_refund_id', $request->id)
+            ->first();
         $deposit_file = $deposit->refund_file;
 
         if ($application) {

@@ -257,11 +257,11 @@
 
         <h5 class="text-xl font-semibold mb-4">Deposit Refund Reference</h5>
         @if($refund_files)
-        <button id="refund-email" class="btn btn-success" type="submit">Send Refund Deposit Email</button>
         <ul class="space-y-2">
             @foreach($refund_files as $file)
                 <li class="flex justify-between items-center bg-gray-50 p-3 rounded border">
                     <a href="{{ Storage::url($file->refund_file) }}" target="_blank" class="text-blue-500 hover:underline">View File</a>
+                    <button class="refund-email" data-item-id="{{ $file->event_deposit_refund_id }}" class="btn btn-success" type="submit">Send Refund Deposit Email</button>
                 </li>
             @endforeach
         </ul>
@@ -498,8 +498,10 @@
         }
     })
 
-    $("#refund-email").click(function(e) {
+    $(".refund-email").click(function(e) {
         e.preventDefault();
+        var itemId = $(this).data('item-id');
+
         if (confirm("Confirm to send refund email?")) {
             $.ajax({
                 headers: {
@@ -508,6 +510,9 @@
                 url: "{{ route('send-refund-email', [$application->application_code])}}",
                 method: "POST",
                 contentType: 'application/json',
+                data: JSON.stringify({
+                    id: itemId
+                }),
                 processData: false,
                 success: function(response) {
                     if (!response.success) {
