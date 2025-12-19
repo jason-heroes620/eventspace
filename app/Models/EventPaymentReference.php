@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class EventPaymentReference extends Model
 {
     protected $table = 'event_payment_reference';
+    protected $primaryKey = 'payment_reference_id';
     protected $fillable = [
         'application_code',
         'reference_no',

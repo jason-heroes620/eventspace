@@ -146,26 +146,25 @@
 
             <p></p>
             <div>
-                <p> Thank you for your interest in joining the "{{  $event_name }}"! We were impressed with your range of products.</p>
+                <p>Thank you for your interest in in participating in our upcoming "{{  $event_name }}" event.</p>
             </div>
             <p></p>
             <div>
-                <p> Unfortunately due to a highly competitive selection process and curated product focus for this event, we weren't able to include your brand for this round.</p>
+                <p>We received an overwhelming number of applications from quality vendors this year. After careful consideration of all submissions, we regret to inform you that we are unable to accommodate your participation at this time. Our decisions were based on space limitations and the need to maintain a diverse and balanced vendor mix that aligns with our event objectives.</p>
             </div>
             <p></p>
             <div>
-                <p> However we encourage you to stay connected as we may have events that better suit your brand in the future!</p>
+                <p>We genuinely appreciate the time and effort you invested in your application. We recognise the value of your products/services and encourage you to consider applying for our future events.</p>
             </div>
             <p></p>
             <div>
-                <p> Thank you again for your interest, and we wish you continued success!
-                </p>
+                <p>Thank you once again for your interest in the Eco Bazaar. We wish you continued success with your business.</p>
             </div>
             <p></p>
             <p></p>
         </div>
         <div class="email-footer">
-            <span  class="footer-text">Sincerely,</span><br>
+            <span  class="footer-text">Yours sincerely,</span><br>
             <span  class="footer-text">Heroes Event Team</span>
             <p></p>
            <div class="email-address">

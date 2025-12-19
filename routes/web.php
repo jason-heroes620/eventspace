@@ -14,6 +14,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\EventApplicationsController;
 use App\Http\Controllers\EventBoothController;
+use App\Http\Controllers\EventDepositRefundController;
 use App\Http\Controllers\EventOrdersController;
 use App\Http\Controllers\EventProductsController;
 use App\Http\Controllers\ProductsController;
@@ -35,9 +36,12 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SalesReportController;
 use App\Mail\ApplicationApprovedResponse;
 use App\Mail\ApplicationRejectedResponse;
+use App\Mail\RefundNotification;
 use App\Models\EventApplicationGroup;
 use App\Models\EventDeposit;
+use App\Models\EventDepositRefund;
 use App\Models\EventGroups;
+use App\Models\EventPaymentReference;
 use App\Models\Products;
 use Illuminate\Support\Facades\Artisan;
 
@@ -79,21 +83,24 @@ Route::group(['middleware' => 'guest'], function () {
     Route::get('/salesreport', [SalesReportController::class, 'salesreport'])->name('salesreport');
     Route::post('/salesreport', [SalesReportController::class, 'salesreport']);
 
-    Route::get('/clear-cache', function () {
-        Artisan::call('cache:clear');
-        return 'Application cache has been cleared';
+    Route::get('/optimize-clear', function () {
+        Artisan::call('optimize:clear');
+        return 'Application optimized';
     });
 });
 
 Route::group(['middleware' => 'auth'], function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
+
     Route::get('/applications', [EventApplicationsController::class, 'index'])->name('applications');
     Route::get('/applications/event/{eventGroupId?}/{eventId?}', [EventApplicationsController::class, 'index'])->name('event-applications');
     Route::get('/applications/{id}', [EventApplicationsController::class, 'index'])->name('application-detail');
-    Route::delete('/logout', [AuthController::class, 'logout'])->name('logout');
 
     Route::post('/applications/{id}', [EventApplicationsController::class, 'updateStatus'])->name('updateStatus');
     Route::put('/update-discount/{id}', [EventApplicationsController::class, 'updateDiscount'])->name('updateDiscount');
+
+    Route::post('/refund/file/store/{code}', [EventDepositRefundController::class, 'storeRefundFile'])->name('refund.file.store');
+    Route::post('/refund/send-email/{code}', [EventDepositRefundController::class, 'sendRefundEmail'])->name('send-refund-email');
 
     Route::get('/dailysales', [SalesReportController::class, 'dailysales'])->name('dailysales');
     Route::post('/dailysales', [SalesReportController::class, 'dailysales']);
@@ -101,6 +108,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/vendorsales', [SalesReportController::class, 'vendorsales'])->name('vendorsales');
 
     Route::get('/reports', [ReportController::class, 'reports'])->name('reports');
+
+    Route::delete('/logout', [AuthController::class, 'logout'])->name('logout');
 
     // Route::get('/compressed-image', function () {
     //     $manager = new ImageManager(
@@ -206,6 +215,27 @@ Route::group(['middleware' => 'auth'], function () {
 
     //     // send successful email        
     //     return new ApplicationApprovedResponse($event, $applicationGroup, $payment_link, $total, $reference_link, $require_deposit,  $items, $deposit, $applicationGroup->due_date, $subTotal, $downpayment_amount, $balance);
+    // });
+
+    // Route::get('/test-mail', function () {
+    //     $code = 'XOWRRM';
+    //     $application = EventApplicationGroup::where('application_code', $code)->first();
+    //     $payment = EventPaymentReference::where('application_code', $code)
+    //         ->where('bank', "!=", null)
+    //         ->first();
+    //     $deposit = EventDepositRefund::where('application_code', $code)->first();
+    //     $deposit_file = $deposit->refund_file;
+
+    //     if ($application) {
+    //         // Send email logic here
+
+    //         Mail::mailer('refund')
+    //             ->to($application->email)
+    //             ->later(
+    //                 now()->addMinutes(0),
+    //                 new RefundNotification($application, $payment, $deposit, $deposit_file)
+    //             );
+    //     }
     // });
 
     // Route::get('/preview-reject-mail', function () {

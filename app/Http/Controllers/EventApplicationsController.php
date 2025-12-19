@@ -23,6 +23,7 @@ use App\Models\EventCategories;
 use App\Models\ApplicationError;
 use App\Models\EventApplicationGroup;
 use App\Models\EventDeposit;
+use App\Models\EventDepositRefund;
 use App\Models\EventDownpayment;
 use App\Models\EventGroups;
 use App\Models\EventPaymentReference;
@@ -100,6 +101,7 @@ class EventApplicationsController extends Controller
                     'balance' => $balance,
                     'paid_total' => $application[4],
                     'remaining_balance' => $total - $application[4],
+                    'refund_files' => $application[5],
                 ]
             )->with('eventGroupId', $req->eventGroupId);
         } else {
@@ -111,26 +113,9 @@ class EventApplicationsController extends Controller
                 ->leftJoin('payment_status', 'payment_status.id', '=', 'event_payments.status');
 
             if (isset($req->eventGroupId)) {
-
                 $query->where("event_application_group.event_group_id", $req->eventGroupId);
-
-
-                // $require_deposit = Events::where('id', $req->eventGroupId)->first()->require_deposit;
-                // $deposit = EventDeposit::whereNull('end_date')->where('event_deposit_status', true)->where('start_date', '<=', date('Y-m-d'))->first()->event_deposit;
-                // foreach ($applications as $application) {
-                //     $booth = EventApplications::select('booth_qty', 'no_of_days', 'price')
-                //         ->leftJoin('events_booths', 'events_booths.id', '=', 'event_applications.booth_id')
-                //         ->where('event_applications.event_application_group_id', $application->id)
-                //         ->get();
             }
-            // } else {
-            //     $applications = DB::table('event_application_group')
-            //         ->select('event_application_group.id', 'organization', 'contact_person', 'contact_no', 'email', 'event_application_group.application_code', 'event_application_group.status', 'event_application_group.created', 'payment_status.status as payment_status')
-            //         ->leftJoin('event_payments', 'event_application_group.id', '=', 'event_payments.application_id')
-            //         ->leftJoin('payment_status', 'payment_status.id', '=', 'event_payments.status')
-            //         ->orderBy('event_application_group.created', 'DESC')
-            //         ->paginate(10);
-            // }
+
             $applications = $query->orderBy('event_application_group.created', 'DESC')
                 ->paginate(10);
 
@@ -374,10 +359,12 @@ class EventApplicationsController extends Controller
             }
         }
 
+        $refund_files = EventDepositRefund::where('application_code', $result->application_code)->get();
+
         if ($page) {
-            return [$result, $page, $payment, $detail, $paid_total];
+            return [$result, $page, $payment, $detail, $paid_total, $refund_files];
         }
-        return [$result, 1, $payment, $detail, $paid_total];
+        return [$result, 1, $payment, $detail, $paid_total, $refund_files];
     }
 
     private function getEventDays($event_id)

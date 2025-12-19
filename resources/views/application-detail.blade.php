@@ -229,6 +229,44 @@
     </div>
     <hr>
     @endif
+
+    <div class="container">
+        <div>
+            <h5 class="text-xl font-semibold mb-4">Upload Refund File</h5>
+        </div>
+        <form  action="{{ route('refund.file.store', $application->application_code) }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            <div class="row  gap-4 align-items-center">
+                <div class="col">
+                    <input type="file" name="document" required class="block text-sm text-gray-500 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 p-2">
+                    @error('document')
+                        <span class="text-red-500 text-sm">{{ $message }}</span>
+                    @enderror
+                </div>
+                <div class="gap-4">
+                    <label for="refund_amount" class="pr-4">Refund Amount</label>
+                    <input type="number" name="refund_amount" required class=" block text-sm text-gray-500 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 p-2">
+                </div>
+                <div class="col">
+                    <button type="submit" class="btn btn-info">Upload</button>
+                </div>
+            </div>
+        </form>
+
+        <hr class="my-8">
+
+        <h5 class="text-xl font-semibold mb-4">Deposit Refund Reference</h5>
+        @if($refund_files)
+        <button id="refund-email" class="btn btn-success" type="submit">Send Refund Deposit Email</button>
+        <ul class="space-y-2">
+            @foreach($refund_files as $file)
+                <li class="flex justify-between items-center bg-gray-50 p-3 rounded border">
+                    <a href="{{ Storage::url($file->refund_file) }}" target="_blank" class="text-blue-500 hover:underline">View File</a>
+                </li>
+            @endforeach
+        </ul>
+        @endif
+    </div>
     <div class="container bg-light py-2">
         <div class="col-12 btn-group justify-right p-2 justify-content-end gap-6">
             <div class="">
@@ -454,6 +492,48 @@
                     setTimeout(function() {
                         location.reload()
                     }, 2000)
+                },
+                error: function(xhr, status, error) {}
+            });
+        }
+    })
+
+    $("#refund-email").click(function(e) {
+        e.preventDefault();
+        if (confirm("Confirm to send refund email?")) {
+            $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: "{{ route('send-refund-email', [$application->application_code])}}",
+                method: "POST",
+                contentType: 'application/json',
+                processData: false,
+                success: function(response) {
+                    if (!response.success) {
+                        var errorMsg = '';
+                        $.each(response.error, function(field, errors) {
+                            $.each(errors, function(index, error) {
+                                errorMsg += error + '<br>';
+                            });
+                        });
+                        iziToast.error({
+                            message: errorMsg,
+                            position: 'bottomRight'
+                        });
+                    } else {
+                        iziToast.success({
+                            id: 'question',
+                            zindex: 999,
+                            message: response.data.message,
+                            position: 'bottomRight'
+
+                        });
+                        setTimeout(function() {
+                            location.reload();
+                        }, 2000)
+
+                    }
                 },
                 error: function(xhr, status, error) {}
             });

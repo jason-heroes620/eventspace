@@ -46,6 +46,23 @@ return [
             'password' => env('MAIL_PASSWORD'),
             'timeout' => null,
             'local_domain' => env('MAIL_EHLO_DOMAIN'),
+            'from' => [
+                'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
+                'name' => env('MAIL_FROM_NAME', 'Example'),
+            ],
+        ],
+        'refund' => [
+            'transport' => 'smtp',
+            'host' => env('REFUND_MAIL_HOST', '127.0.0.1'),
+            'port' => env('REFUND_MAIL_PORT', 2525),
+            'encryption' => env('REFUND_MAIL_ENCRYPTION', 'tls'),
+            'username' => env('REFUND_MAIL_USERNAME'),
+            'password' => env('REFUND_MAIL_PASSWORD'),
+            'timeout' => null,
+            'from' => [
+                'address' => env('REFUND_MAIL_FROM_ADDRESS'),
+                'name' => env('REFUND_MAIL_FROM_NAME'),
+            ],
         ],
 
         'ses' => [
@@ -95,9 +112,6 @@ return [
     |
     */
 
-    'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
-        'name' => env('MAIL_FROM_NAME', 'Example'),
-    ],
+
 
 ];
