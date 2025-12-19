@@ -87,6 +87,11 @@ Route::group(['middleware' => 'guest'], function () {
         Artisan::call('optimize:clear');
         return 'Application optimized';
     });
+
+    Route::get('/storage-link', function () {
+        Artisan::call('optimize:clear');
+        return 'Application optimized';
+    });
 });
 
 Route::group(['middleware' => 'auth'], function () {
@@ -441,32 +446,32 @@ Route::group(['middleware' => 'auth'], function () {
 //     }
 // });
 
-Route::get('/test-resject-mail', function () {
-    $application_id = 68;
-    $application = EventApplications::where('id', $application_id)
-        ->first();
-    $event = Events::where('id', $application->event_id)->first();
-    $link = config('custom.payment_redirect_host') . '/payment/' . $application->application_code;
-    $application->reference_link = config('custom.payment_redirect_host') . '/payment-reference/' . $application->application_code;
+// Route::get('/test-resject-mail', function () {
+//     $application_id = 68;
+//     $application = EventApplications::where('id', $application_id)
+//         ->first();
+//     $event = Events::where('id', $application->event_id)->first();
+//     $link = config('custom.payment_redirect_host') . '/payment/' . $application->application_code;
+//     $application->reference_link = config('custom.payment_redirect_host') . '/payment-reference/' . $application->application_code;
 
-    $event_booth = (new EventBoothController)->getEventBoothPriceById($application->event_id, $application->booth_id);
-    $total = (float)((int)$application->booth_qty * (int)$application->no_of_days * (int)$event_booth->price);
-    Log::info("total");
-    Log::info($total);
-    if ($application->discount) {
-        Log::info('discount' . $application->discount_value);
-        $total -= $application->discount_value;
-        Log::info($total);
-    }
-    $application->payment = number_format($total, 2, '.', '');
+//     $event_booth = (new EventBoothController)->getEventBoothPriceById($application->event_id, $application->booth_id);
+//     $total = (float)((int)$application->booth_qty * (int)$application->no_of_days * (int)$event_booth->price);
+//     Log::info("total");
+//     Log::info($total);
+//     if ($application->discount) {
+//         Log::info('discount' . $application->discount_value);
+//         $total -= $application->discount_value;
+//         Log::info($total);
+//     }
+//     $application->payment = number_format($total, 2, '.', '');
 
-    try {
-        Mail::to("jason820620@gmail.com")
-            ->send(new ApplicationRejectedResponse($event, $application));
-    } catch (Throwable $ex) {
-        Log::error($ex);
-    }
-});
+//     try {
+//         Mail::to("jason820620@gmail.com")
+//             ->send(new ApplicationRejectedResponse($event, $application));
+//     } catch (Throwable $ex) {
+//         Log::error($ex);
+//     }
+// });
 
 // Route::get('/test-test', function () {
 //     $status = (object)array("status" => 'N', 'message' => "");

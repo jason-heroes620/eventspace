@@ -72,7 +72,7 @@ class RefundNotification extends Mailable
 
         return [
             Attachment::fromPath(
-                asset('storage/' . $this->deposit_file)
+                public_path('storage/' . $this->deposit_file)
             )
                 ->as('deposit_refund.' . $extension)
                 ->withMime($mime)
