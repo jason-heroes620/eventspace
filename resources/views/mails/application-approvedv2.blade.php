@@ -190,6 +190,7 @@
                             <td style="padding: 2px 10px">Deposit</td>                         
                             <td class='table_amount'>{{ $deposit_amount }}</td>
                         </tr>                 
+                        {{-- 
                         <tr>
                             <td style="padding: 2px 10px">Downpayment</td>                         
                             <td class='table_amount'>{{ $downpayment_amount }}</td>
@@ -197,6 +198,11 @@
                         <tr>
                             <td style="padding: 2px 10px">Balance</td>                     
                             <td class='table_amount'>{{ number_format($balance, 2) }}</td>
+                        </tr> 
+                        --}}
+                        <tr>
+                            <td style="padding: 2px 10px">Sub Total</td>                         
+                            <td class='table_amount'>{{ $sub_total }}</td>
                         </tr>
                         @if($discount)
                             <tr>

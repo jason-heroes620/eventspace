@@ -109,7 +109,7 @@
                 <span class="col-12 col-md-8 py-2 border">{{ number_format((float)$deposit, '2','.',',') }}</span>
             </div>
             @endif
-            @if ($downpayment)
+            {{-- @if ($downpayment)
             <div class="row py-2">
                 <span class="col-12 col-md-4"><strong>Downpayment (RM)</strong></span>
                 <span class="col-12 col-md-8 py-2 border">{{ number_format((float)$downpayment, '2','.',',') }}</span>
@@ -118,7 +118,7 @@
                 <span class="col-12 col-md-4"><strong>Balance (RM)</strong></span>
                 <span class="col-12 col-md-8 py-2 border">{{ number_format((float)$balance, '2','.',',') }}</span>
             </div>
-            @endif
+            @endif --}}
       
             <div class="row py-2">
                 <span class="col-12 col-md-4 text-red-500"><strong>Discount (RM)</strong></span>
