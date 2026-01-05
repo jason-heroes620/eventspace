@@ -176,7 +176,7 @@
 
             </div>
             <div>
-                <p> To finalise your participation and secure your booth, please pay a downpayment of <b>RM {{ $downpayment_amount }}</b> within 3 days of receiving this email and remaining balance of <b>RM {{ $balanceAndDeposit }}</b> within 14 days before the event date.</p>
+                <p> To finalise your participation and secure your booth, please pay the total amount of <b>RM {{ $payment }}</b> within 3 days of receiving this email.</p>
             </div>
             
             <div  class="booth-content">
