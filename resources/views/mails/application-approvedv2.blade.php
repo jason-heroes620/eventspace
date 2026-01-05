@@ -202,7 +202,7 @@
                         --}}
                         <tr>
                             <td style="padding: 2px 10px">Sub Total</td>                         
-                            <td class='table_amount'>{{ $sub_total }}</td>
+                            <td class='table_amount'>{{ $subTotal }}</td>
                         </tr>
                         @if($discount)
                             <tr>
